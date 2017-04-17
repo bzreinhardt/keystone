@@ -1,6 +1,16 @@
-Readme.md
+README.md
 
-Requirements:
+This was a hack project to visualize the confidence of the IBM Recognizer. It reads a .mp3 file from INPUT_DIR and outputs a folder of goodies to OUTPUT_DIR in a new folder with the name of the input file. It also stores some meta-data in a CSV file at RESULT_CSV_FILE.
+
+#TODO:
+The top of srdirectory has the input and output files hardcoded:
+INPUT_DIR = "/Users/kon/Dropbox/sr-input"
+OUTPUT_DIR = "/Users/kon/Dropbox/sr-output"
+RESULT_CSV_FILE = "/Users/kon/Dropbox/sr-output/results.csv"
+
+Need to add those to a config file.
+
+#Requirements:
 speech_credentials.py file
 install the speech_recognition python library
 
