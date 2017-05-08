@@ -1,3 +1,7 @@
+# Keystone
+
+Automatic note-taking.
+
 ### Setup
 Clone this repo to your local machine
 
