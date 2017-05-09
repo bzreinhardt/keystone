@@ -1,4 +1,4 @@
-name: mindstone
+name: keystone
 channels:
 - !!python/unicode
   'conda-forge'

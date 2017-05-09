@@ -14,10 +14,9 @@ export KEYSTONE=${pwd}
 Create a Conda environment (You will need to [Install Conda](https://conda.io/docs/install/quick.html) first)
 
 ```bash
-conda create --name keystone python=3
-source activate keystone
 cd $KEYSTONE
-pip install -r requirements.txt
+conda env create environment.yml
+source activate keystone
 ```
 
 Download amicorpus data
