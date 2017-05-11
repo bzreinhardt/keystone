@@ -1,0 +1,83 @@
+<head> <title>MobileAppCall</title> 
+
+    <head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <style> .alt0 { color: black; } .alt1 { color: red; }
+
+    <style>
+
+    h1 {
+
+    background-color: lightgrey;
+
+    } </style>
+
+    </head>
+
+    <body style="margin:20;padding:0">
+
+    <div id="popover-content" class="hide"> 
+
+    <input type="text" name="email" id="email"/>
+
+    </div>
+
+<body>
+
+
+    <script>
+
+    audios = {};
+
+    
+    for (var audio_id in audios) {
+
+      audios[audio_id].addEventListener("canplaythrough", function() {this.play();});
+
+    }
+
+    
+
+    function pauseAllAudio(){
+
+      for (var audio_id in audios) {
+
+      audios[audio_id].pause();
+
+    }
+
+    }
+
+    function setTime(curTime, audio_id){
+
+      pauseAllAudio();
+
+      audios[audio_id].currentTime = curTime; 
+
+      audios[audio_id].play();
+
+    }
+
+    window.onload = function(){ pauseAllAudio() }
+
+    </script>
+
+    <script src=mindstone_ui.js></script>
+    <br>
+<h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
+<br>
+<br>Speaker 0: <a rel="popover" id=word_ES2016a.A.words0 onClick="setTime(10.93, 'master');" style="cursor: pointer; cursor: hand; background-color: #FFffff"> Okay </a> 
+<a rel="popover" id=word_ES2016a.A.words1 onClick="setTime(12.03, 'master');" style="cursor: pointer; cursor: hand; background-color: #FFffff"> . </a>
+<a rel="popover" id=word_ES2016a.A.words2 onClick="setTime(12.03, 'master');" style="cursor: pointer; cursor: hand; background-color: #FFffff"> Oh </a>
+ <a rel="popover" id=word_ES2016a.A.words3 onClick="setTime(12.41, 'master');" style="cursor: pointer; cursor: hand; background-color: #FFffff"> , </a> 
+ <a rel="popover" id=word_ES2016a.A.words4 onClick="setTime(12.41, 'master');" style="cursor: pointer; cursor: hand; background-color: #FFffff"> that's </a>
+  <a rel="popover" id=word_ES2016a.A.words5 onClick="setTime(12.75, 'master');" style="cursor: pointer; cursor: hand; background-color: #FFffff"> not </a>
+   <a rel="popover" id=word_ES2016a.A.words6 onClick="setTime(12.87, 'master');" style="cursor: pointer; cursor: hand; background-color: #FFffff"> gonna </a> 
