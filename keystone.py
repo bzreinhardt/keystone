@@ -4,6 +4,8 @@ from shutil import copyfile
 import pdb
 
 DATA_DIR = os.environ['DATA_DIR']
+SERVER_STATIC_DIR = os.environ['KEYSTONE']+'/webapp/static'
+SERVER_TEMPLATE_DIR = os.environ['KEYSTONE']+'/webapp/templates'
 
 def create_header():
     text = """<head> <title>MobileAppCall</title> \n
@@ -70,7 +72,6 @@ def create_js(all_audio):
     }\n
     window.onload = function(){ pauseAllAudio() }\n
     </script>\n
-    <script src=mindstone_ui.js></script>
     """%audio_id_string
     return text
 
@@ -106,8 +107,7 @@ def create_audio_html(filename, all_audio, words):
     :return: 
     """
     with open(filename, 'w') as f:
-        f.write(create_header())
-        f.write('\n')
+        f.write("{% extends \"header.html\" %} {% block body %}")
         f.write('<body>')
         f.write('\n')
         for audio in all_audio:
@@ -123,11 +123,13 @@ def create_audio_html(filename, all_audio, words):
         previous_speaker = -1
         for word in words:
             if previous_speaker is not word['speaker']:
-                f.write('<br>')
+                f.write('<br>\n')
                 f.write('Speaker %d: '%word['speaker'])
             f.write(word_to_html(word, master_audio='master'))
             f.write(' ')
             previous_speaker = word['speaker']
+        f.write('\n')
+        f.write('{% endblock %}')
 
 
 def compile_transcript(speaker_data):
@@ -291,10 +293,10 @@ def test_full_stack():
     audio_files = []
     speaker_data = []
     appendices = ['A', 'B', 'C', 'D']
-    target_dir = 'html_test'
+    target_dir = SERVER_TEMPLATE_DIR
     if not os.path.isdir(target_dir):
         os.mkdir(target_dir)
-    copyfile('mindstone_ui.js', '%s/mindstone_ui.js'%target_dir)
+    #copyfile('mindstone_ui.js', '%s/mindstone_ui.js'%SERVER_STATIC_DIR)
     os.chdir(target_dir)
     for i in range(0, len(appendices)):
         audio_name = "ES2016a.Headset-%d.wav"%i

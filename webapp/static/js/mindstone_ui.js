@@ -101,12 +101,23 @@ function processComment(comment) {
         $(start_element).each(function() {
             $(this).add($(this).nextUntil(stop_element)).wrapAll(div_text);
         });
-        text = "<br>\n<b>\n <a onclick=\"setTime(0.0);\" href=\"#"+current_topic_id+"\" data-toggle=\"collapse\" aria-expanded=\"true\" class=\"\" id=\"" + current_topic_id + "_controller\">" + topic + "</a></b>\n<br>";
+        text = "<br>\n<b>\n <a onclick=\"setTime(0.0);\" href=\"#"+current_topic_id+"\" data-toggle=\"collapse\" aria-expanded=\"true\" class=\"\" id=\"" + current_topic_id + "_controller\"> TOPIC:" + topic + "</a></b>\n<br>";
         var fragment = create(text);
         document.body.insertBefore(fragment, document.getElementById(current_topic_id));
         $("#"+current_topic_id).collapse("hide")
         current_topic_id = current_topic_id + 1;
     }
+}
+
+function getSelectionText() {
+    var text = "";
+    if (window.getSelection) {
+        text = window.getSelection().toString();
+    } else if (document.selection && document.selection.type != "Control") {
+        text = document.selection.createRange().text;
+    }
+    console.log(text);
+    return text;
 }
 
 function getSelectedElementTags() {
@@ -143,7 +154,7 @@ function getSelectedElementTags() {
 
         console.log(elmlist);
         
-        if (elmlist.length > 0){
+        if (getSelectionText().length > 0 && elmlist.length > 0){
             var text = prompt("Enter comment (MAKE SURE YOU PRESS OK):");
             console.log(text);
             var comment = {};
@@ -165,4 +176,5 @@ function getSelectedElementTags() {
 }
 
 document.onmouseup = getSelectedElementTags;
-document.onkeyup = getSelectedElementTags;
+document.onkeyup = getSelectedElementTags
+//document.onkeyup = getSelectionText;
