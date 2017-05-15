@@ -38,6 +38,7 @@ class Audio(db.Model):
     deepgram_id = db.Column(db.String(120))
     transcript_str = db.Column(db.String(800))
     auto_transcript_str = db.Column(db.String(800))
+    nickname = db.Column(db.String(200))
     transcript = dict()
     auto_transcript = dict()
 
@@ -51,7 +52,7 @@ class Audio(db.Model):
         self.auto_transcript_str = json.dumps(self.auto_transcript)
 
     def __repr__(self):
-        return '<Key: %s, aws_url:%s>' % (self.key, self.aws_url)
+        return '<Nickname: %s, Key: %s, aws_url:%s>' % (self.key, self.aws_url)
 
     def to_dict(self):
         return {"aws_url":self.aws_url, "deepgram_id":self.deepgram_id, "transcript":self.transcript}
@@ -133,6 +134,8 @@ def db_commit():
             f.write(json.dumps(mem_db))
 
 
+
+
 @app.route('/_comments')
 def print_comment():
     """Add two numbers server side, ridiculous but well..."""
@@ -152,9 +155,19 @@ def print_comment():
     return jsonify(result=response)
 
 
-@app.route('/_audio')
+@app.route('/_upload_audio')
 def load_audio():
+    if not request.form.has_key('audio_key'):
+        request.form['audio_key'] = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+    data = request.files['audio'].stream.read()
     return 0
+
+
+@app.route('/audio/<audio_key>')
+def display_audio(audio_key):
+    lines = keystone.generate_speaker_lines(mem_db['audio'][audio_key]['transcript'])
+    return render_template('audio_page.html', lines=lines, audio_key=audio_key)
+
 
 @app.route('/_audio_search')
 def audio_search():
@@ -163,7 +176,6 @@ def audio_search():
     print("got query %s" % query)
     response = keyword_search.search_results(query, app.config['DEEPGRAM_AUDIO_ID'])
     return response
-
 
 
 
@@ -183,33 +195,8 @@ def upload_image():
   print("SAVED TO KEY: %s"%key)
   return 'success'
 
-@app.route('/lookup', methods=['GET', 'POST'])
-def lookup_gps():
-  coords = [(request.json['location']['lat'], request.json['location']['long'])]
-  if len(app.DB) == 0:
-    app.DB = load_db(DB_PATH)
-  index = find_closest_art(app.DB, coords)
-
-  return json.dumps({'name':app.DB[index]['name'], 'instagram':app.DB[index]['instagram']})
 
 
-def startup():
-    # Check if already has a deepgram ID from the database
-    # Check if config wants you to load it to deepgram
-    # if so load file to deepgram
-    if app.config['do_audio_indexing'] and 'deepgram_id' not in mem_db['audio'][app.config['audio_key']]:
-        # or len(mem_db['audio'][app.config['audio_key']]['deepgram_id']) is 0:
-        # pdb.set_trace()
-        deepgram_id = keyword_search.index_audio_url(mem_db['audio'][app.config['audio_key']]['aws_url'])
-        mem_db['audio'][app.config['audio_key']]['deepgram_id'] = deepgram_id
-        db_commit()
-    # Check if alread   y has an automatic transcript
-    # Check if config wants you to create an automatic transcript
-    # if so get an automatic transcript from place of your choice
-    if app.config['do_auto_transcript'] and 'auto_transcript' not in mem_db['audio'][app.config['audio_key']]:
-        #                or len(mem_db['audio'][app.config['audio_key']]['auto_transcript']) is 0:
-        foo = 'bar'
-    return
 
 
 @app.route('/')
@@ -227,12 +214,11 @@ def index():
         words = keystone.aggregate_words(speaker_data)
         lines = keystone.generate_speaker_lines(words)
     '''
-    lines = keystone.generate_speaker_lines(mem_db['audio'][app.config['audio_key']]['transcript'])
-    return render_template('audio_page.html', lines=lines, audio_key=app.config['audio_key'])
-
-
-
-
+    # TODO: make this stateless
+    for audio in mem_db['audio']:
+        print("Name of audio: %s" % audio)
+        print(mem_db['audio'][audio].keys())
+    return render_template('index.html', audios=mem_db['audio'])
 
 
 if __name__ == '__main__':
@@ -256,16 +242,20 @@ if __name__ == '__main__':
             with open(app.config['json_db']) as f:
                 mem_db = json.loads(f.read())
 
-    if len(args.audio_file) > 0:
-        #check if its already on aws
-        aws_url = keyword_search.upload_to_aws(args.audio_file)
-        app.config['audio_key'] = aws_url
-        if aws_url not in mem_db['audio']:
-            mem_db['audio'][aws_url] = {'aws_url': aws_url}
-            db_commit()
+    audio_key = args.audio_key
 
-    if len(args.audio_key) > 0:
-        app.config['audio_key'] = args.audio_key
+    if len(args.audio_file) > 0:
+        aws_url = keyword_search.upload_to_aws(args.audio_file)
+
+        if audio_key == '':
+            audio_key = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        if audio_key not in mem_db['audio']:
+            mem_db['audio'][audio_key] = {'aws_url': aws_url}
+        else:
+            mem_db['audio'][audio_key]['aws_url']
+        db_commit()
+
+
 
     if args.index:
         app.config['do_audio_indexing'] = True
@@ -274,6 +264,7 @@ if __name__ == '__main__':
         app.config['do_auto_transcript'] = True
 
     app.debug = app.config['debug']
-    startup()
+    if len(audio_key) > 0:
+        startup(audio_key)
     app.run()
 

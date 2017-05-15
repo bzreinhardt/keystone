@@ -196,6 +196,7 @@ function getSelectedElementTags() {
 		}
 }
 
+// TODO: figure out why this is not being captured
 $('#keyword').keydown(function(event){
 	if (event.keyCode == 13 || event.which == 13) {
 		console.log('sending ' + $('#keyword').val());

@@ -1,0 +1,19 @@
+{% extends "header.html" %} {% block body %}<body>
+<script type="text/javascript"> var audio_key = "{{audio_key}}" </script>
+<br>
+<h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
+<br>
+Enter keyword to search for:
+<br>
+<input type=text size=20 name=keyword id=keyword>
+<br>
+{% for line in lines %}
+Speaker {{line['speaker']}} : 
+{%for word in line['words'] %}
+<a rel="popover" id=word_{{word['nite:id']}} onClick="setTime({{word['starttime']}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{word['hex_confidence']}}"> {{word['text']}} </a>
+{% endfor %}
+<br>
+{% endfor %}
+  </body>
+</html>
+{% endblock %}

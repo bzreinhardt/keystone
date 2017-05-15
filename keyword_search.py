@@ -39,6 +39,8 @@ def upload_to_aws(filename, aws_path=None, overwrite=False):
     url = k.generate_url(expires_in=0, query_auth=False)
     if not k.exists():
         test_file = filename
+        # TODO - print file size and give an idea of how long it should take
+        print('Loading to AWS ... ')
         k.set_contents_from_filename(test_file, cb=percent_cb, num_cb=10)
     return url
 
