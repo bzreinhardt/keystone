@@ -1,0 +1,6 @@
+{"use_json_db":true,
+ "json_db":"db.json",
+ "init_db":false,
+ "do_audio_indexing":false,
+ "do_auto_transcript":false,
+  "debug":true}

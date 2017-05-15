@@ -4,12 +4,13 @@ import boto
 import sys
 import os
 import argparse
+import pdb
 
 AWS_ACCESS_KEY_ID = 'AKIAJ33XPTGEMXMCQTXA'
 AWS_SECRET_ACCESS_KEY = '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'
 DEEPGRAM_URL = 'https://api.deepgram.com'
 DEEPGRAM_SEARCH_URL = 'https://groupsearch.api.deepgram.com'
-bucket_name = 'actionitem'
+BUCKET_NAME = 'actionitem'
 headers = {'Content-Type': 'application/json'}
 
 
@@ -21,7 +22,7 @@ def percent_cb(complete, total):
     sys.stdout.flush()
 
 
-def upload_to_aws(filename, aws_path=None):
+def upload_to_aws(filename, aws_path=None, overwrite=False):
     """
     
     :param filename: 
@@ -29,13 +30,16 @@ def upload_to_aws(filename, aws_path=None):
     :return: public url of resource
     """
     filename = os.path.abspath(filename)
+    conn = boto.connect_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+    bucket = conn.get_bucket(BUCKET_NAME)
     k = boto.s3.key.Key(bucket)
     if aws_path is None:
-        aws_path = filename.split('/')[-1]
+        aws_path = filename.split('raw_data/')[-1]
     k.key = aws_path
-    test_file = filename
-    k.set_contents_from_filename(test_file, cb=percent_cb, num_cb=10)
     url = k.generate_url(expires_in=0, query_auth=False)
+    if not k.exists():
+        test_file = filename
+        k.set_contents_from_filename(test_file, cb=percent_cb, num_cb=10)
     return url
 
 

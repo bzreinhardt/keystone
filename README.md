@@ -29,6 +29,15 @@ Example processing and html creation
 python keystone.py
 ```
 
+### Transcripts
+Proposed official transcript format:
+List of words which are dictionaries with the following fields:
+'starttime'
+'endtime'
+'text'
+'speaker'
+'confidence'
+
 TODO:
 
 DONE finish download script

@@ -1,4 +1,4 @@
-name: keystone
+name: mindstone
 channels:
 - !!python/unicode
   'conda-forge'
@@ -11,6 +11,8 @@ dependencies:
   'appnope=0.1.0=py36_0'
 - !!python/unicode
   'bleach=1.5.0=py36_0'
+- !!python/unicode
+  'curl=7.52.1=0'
 - !!python/unicode
   'decorator=4.0.11=py36_0'
 - !!python/unicode
@@ -66,6 +68,8 @@ dependencies:
 - !!python/unicode
   'ptyprocess=0.5.1=py36_0'
 - !!python/unicode
+  'pycurl=7.43.0=py36_2'
+- !!python/unicode
   'pygments=2.2.0=py36_0'
 - !!python/unicode
   'pyqt=5.6.0=py36_2'
@@ -112,11 +116,13 @@ dependencies:
 - !!python/unicode
   'zlib=1.2.8=3'
 - pip:
+  - boto==2.46.1
   - boto3==1.4.4
   - botocore==1.5.46
   - click==6.7
   - docutils==0.13.1
   - flask==0.12.1
+  - flask-script==2.0.5
   - flask-sqlalchemy==2.2
   - ipython-genutils==0.2.0
   - itsdangerous==0.24

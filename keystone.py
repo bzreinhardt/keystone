@@ -26,18 +26,6 @@ def create_header():
     </div>\n"""
     return text
 
-def create_text_entry():
-    text = """
-    <div id="myForm" class="hide">
-    <form action="/echo/html/" id="popForm" method="get">
-    <div>
-    < input type="email" name="email" id="email" class ="form-control input-md" >
-    </div >
-    </form >
-    </div >
-    """
-    return text
-
 
 def create_audio_element(filename, id="audio2"):
     text =  """<audio id="%s" preload=\"auto\" src = "%s"> \n
@@ -75,11 +63,13 @@ def create_js(all_audio):
     """%audio_id_string
     return text
 
+def confidence_to_hex(confidence):
+    return '#FF' + format(int(confidence * 255), 'x') + format(int(confidence * 255), 'x')
 
 def word_to_html(word, master_audio=None):
     """
     converts a word to an html element
-    :param word - dictionary with '#text': 
+    :param word - dictionary with 'text': 
     :return html - line of html that will play the word in the recording: 
     """
     confidence = 1.0
@@ -89,9 +79,9 @@ def word_to_html(word, master_audio=None):
     if master_audio is not None:
         speaker = master_audio
     #pdb.set_trace()
-    html = '<a rel="popover" id=word_' + word['@nite:id']+ ' onClick="setTime(' + str(
-            word['@starttime']) + ', \'' +  speaker + '\');" style="cursor: pointer; cursor: hand; background-color: #FF' + format(
-            int(confidence * 255), 'x') + format(int(confidence * 255), 'x') + '"> ' + word['#text'] + ' </a>'
+    html = '<a rel="popover" id=word_' + word['nite:id']+ ' onClick="setTime(' + str(
+            word['starttime']) + ', \'' +  speaker + '\');" style="cursor: pointer; cursor: hand; background-color: #FF' + format(
+            int(confidence * 255), 'x') + format(int(confidence * 255), 'x') + '"> ' + word['text'] + ' </a>'
     return html
 
 def audio_button_html():
@@ -132,9 +122,25 @@ def create_audio_html(filename, all_audio, words):
         f.write('{% endblock %}')
 
 
+def generate_speaker_lines(words):
+    lines = []
+    previous_speaker = -1
+    current_line = {"words":[]}
+    for word in words:
+        if 'confidence' not in word:
+            word['confidence'] = 1.0
+        word['hex_confidence'] = confidence_to_hex(word['confidence'])
+        if previous_speaker is not word['speaker']:
+            current_line['speaker'] = previous_speaker
+            lines.append(current_line)
+            current_line = {"words":[]}
+        current_line['words'].append(word)
+        previous_speaker = word['speaker']
+    return lines
+
 def compile_transcript(speaker_data):
     ### Compiles a transcript from a bunch of different speakers
-    # Takes a list of speaker structures - dicts w/ field 'data' w/ fields 'id', '@starttime', '@endtime', '#text'
+    # Takes a list of speaker structures - dicts w/ field 'data' w/ fields 'id', 'starttime', 'endtime', 'text'
 
     # Keep track of a global timestamp
     time = 0
@@ -154,9 +160,9 @@ def compile_transcript(speaker_data):
         for i, index in enumerate(speaker_index):
             if done_speakers[i] is True:
                 continue
-            if float(speaker_data[i]['data'][index]['@starttime']) < lowest_time:
+            if float(speaker_data[i]['data'][index]['starttime']) < lowest_time:
                 new_active_speaker = i
-                lowest_time = float(speaker_data[i]['data'][index]['@starttime'])
+                lowest_time = float(speaker_data[i]['data'][index]['starttime'])
         #pdb.set_trace()
         # add to transcript and reset current statement if the speaker changed
 
@@ -165,7 +171,7 @@ def compile_transcript(speaker_data):
             current_statement = ''
         active_speaker = new_active_speaker
         # TODO: do something to point to the timestamps in the transcript
-        current_statement += (speaker_data[active_speaker]['data'][speaker_index[active_speaker]]['#text'])
+        current_statement += (speaker_data[active_speaker]['data'][speaker_index[active_speaker]]['text'])
         current_statement += ' '
         #speaker_index[active_speaker] += 1
 
@@ -183,7 +189,7 @@ def compile_transcript(speaker_data):
 def aggregate_words(speaker_data):
     """
     Compiles a transcript from a bunch of different speakers
-    :param speaker_data: a list of speaker structures - dicts w/ fields 'id', '@starttime', '@endtime', '#text': 
+    :param speaker_data: a list of speaker structures - dicts w/ fields 'id', 'starttime', 'endtime', 'text': 
     :return: 
     """
     # Keep track of index for each speaker data
@@ -199,9 +205,9 @@ def aggregate_words(speaker_data):
         for i, index in enumerate(speaker_index):
             if done_speakers[i] is True:
                 continue
-            if float(speaker_data[i][index]['@starttime']) < lowest_time:
+            if float(speaker_data[i][index]['starttime']) < lowest_time:
                 new_active_speaker = i
-                lowest_time = float(speaker_data[i][index]['@starttime'])
+                lowest_time = float(speaker_data[i][index]['starttime'])
         # add to transcript and reset current statement if the speaker changed
         active_speaker = new_active_speaker
         # TODO: do something to point to the timestamps in the transcript
@@ -230,16 +236,20 @@ def word_list_to_string(word_list):
             transcript += "\n"
             transcript += "Speaker_%d: " % word['speaker']
             current_speaker = word['speaker']
-        transcript += "%s "%word['#text']
+        transcript += "%s "%word['text']
     return transcript
 
 
-
+# Proposed way transcripts should be represented:
+# List of words
 def load_words(path):
     with open(path, 'r') as f:
         xml = f.read()
-
     words = xmltodict.parse(xml)['nite:root']['w']
+    for word in words:
+        word['text'] = word['#text']
+        word['starttime'] = word['@starttime']
+        word['endtime'] = word['@endtime']
     return words
 
 
@@ -280,10 +290,10 @@ def test_html_creation():
         copyfile(audio_file, audio_name)
     print ("audio files")
     print (audio_files)
-    test_words = [{'#text': 'Track0', '@starttime': 10.0, 'speaker': 0},
-                  {'#text': 'Track1', '@starttime': 10.0, 'speaker': 1},
-                  {'#text': 'Track2', '@starttime': 10.0, 'speaker': 2},
-                  {'#text': 'Track3', '@starttime': 10.0, 'speaker': 3}]
+    test_words = [{'text': 'Track0', 'starttime': 10.0, 'speaker': 0},
+                  {'text': 'Track1', 'starttime': 10.0, 'speaker': 1},
+                  {'text': 'Track2', 'starttime': 10.0, 'speaker': 2},
+                  {'text': 'Track3', 'starttime': 10.0, 'speaker': 3}]
     create_audio_html('test.html', audio_files, test_words)
 
 
