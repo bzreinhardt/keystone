@@ -38,8 +38,7 @@ var popOverSettings = {
 // TODO Make this work with popovers because it would be cooler
 //$('body').popover(popOverSettings);
 
-var audios = {};
-
+var audios = {'master_audio': document.getElementById('master_audio')};
 		
 for (var audio_id in audios) {
 	audios[audio_id].addEventListener("canplaythrough", function() {this.play();});

@@ -1,5 +1,8 @@
 {% extends "header.html" %} {% block body %}<body>
 <script type="text/javascript"> var audio_key = "{{audio_key}}" </script>
+<audio id="master_audio" preload="auto" src = {{audio_url}}> 
+    <p> Your browser does not support the audio element </p> 
+</audio>
 <br>
 <h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
 <br>
@@ -15,5 +18,6 @@ Speaker {{line['speaker']}} :
 <br>
 {% endfor %}
   </body>
+<script src="{{ url_for('static', filename='/js/mindstone_ui.js') }}"></script>
 </html>
 {% endblock %}

@@ -166,7 +166,8 @@ def load_audio():
 @app.route('/audio/<audio_key>')
 def display_audio(audio_key):
     lines = keystone.generate_speaker_lines(mem_db['audio'][audio_key]['transcript'])
-    return render_template('audio_page.html', lines=lines, audio_key=audio_key)
+    audio_url = mem_db['audio'][audio_key]['aws_url']
+    return render_template('audio_page.html', lines=lines, audio_key=audio_key, audio_url=audio_url)
 
 
 @app.route('/_audio_search')
