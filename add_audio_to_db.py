@@ -4,6 +4,7 @@ import argparse
 import os
 import random
 import keyword_search
+import keystone_asr
 import string
 import pdb
 
@@ -15,9 +16,10 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--audio_file')
     parser.add_argument('--xml_transcripts_folder')
-    parser.add_argument('--json_transcript_file')
+    parser.add_argument('--ibm_transcript_file')
     parser.add_argument('-n', '--name', default='')
     parser.add_argument('-d','--defaults', action='store_true')
+    parser.add_argument('-t', '--transcript', action='store_true')
     args = parser.parse_args()
 
     audio_key = args.name
@@ -36,7 +38,6 @@ if __name__=="__main__":
         mem_db = {"audio":dict(), "comments":dict()}
 
     speaker_data = []
-
     for file in os.listdir(xml_transcripts_folder):
         if file.split('.')[-1] == 'xml':
             full_path = os.path.join(args.xml_transcripts_folder, file)
@@ -44,10 +45,11 @@ if __name__=="__main__":
 
     words = keystone.aggregate_words(speaker_data)
 
-    if audio_key in mem_db['audio']:
-        mem_db['audio'][audio_key]['transcript'] = words
-    else:
-        mem_db['audio'][audio_key] = {'transcript': words}
+    if len(words) > 0:
+        if audio_key in mem_db['audio']:
+            mem_db['audio'][audio_key]['transcript'] = words
+        else:
+            mem_db['audio'][audio_key] = {'transcript': words}
 
     if audio_file:
         aws_url = keyword_search.upload_to_aws(audio_file)
@@ -58,5 +60,19 @@ if __name__=="__main__":
         else:
             mem_db['audio'][audio_key]['aws_url'] = aws_url
 
-    with open('db.json', 'w') as f:
+    # create a transcript with the file
+    ibm_transcript = None
+    if args.transcript:
+        # if it's not a local file, you have to download it from aws - super hacky
+        ibm_transcript = keystone_asr.run_watson(audio_file, transcript_file="%s/ibm_transcript.json"%os.path.split(audio_file)[0])
+        mem_db['audio'][audio_key]['ibm__transcript'] = ibm_transcript
+    elif args.ibm_transcript_file:
+        with open(args.ibm_transcript_file, 'r') as f:
+            ibm_transcript = json.loads(f.read())
+
+    if ibm_transcript:
+        words = keystone_asr.words_from_json(ibm_transcript, name=audio_key)
+        mem_db['audio'][audio_key]['ibm_transcript'] = words
+
+    with open(DEFAULT_DB_FILE, 'w') as f:
         f.write(json.dumps(mem_db))

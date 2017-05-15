@@ -1,125 +1,26 @@
 import xmltodict
 import os
 from shutil import copyfile
+from pydub import AudioSegment
 import pdb
 
 DATA_DIR = os.environ['DATA_DIR']
 SERVER_STATIC_DIR = os.environ['KEYSTONE']+'/webapp/static'
 SERVER_TEMPLATE_DIR = os.environ['KEYSTONE']+'/webapp/templates'
 
-def create_header():
-    text = """<head> <title>MobileAppCall</title> \n
-    <head>\n
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n
-    <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\">\n
-    <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js\"></script>\n
-    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\"></script>\n
-    <style> .alt0 { color: black; } .alt1 { color: red; }\n
-    <style>\n
-    h1 {\n
-    background-color: lightgrey;\n
-    } </style>\n
-    </head>\n
-    <body style=\"margin:20;padding:0\">\n
-    <div id="popover-content" class="hide"> \n
-    <input type="text" name="email" id="email"/>\n
-    </div>\n"""
-    return text
 
+def mp3_to_wav(mp3_path):
+    (path, filename) = os.path.split(mp3_path)
+    if filename.split('.')[-1] != "mp3":
+        return
+    sound = AudioSegment.from_mp3(mp3_path)
+    print ('eporting to %s/%s.wav' % (path, filename.split('.')[0]))
+    sound.export("%s/%s.wav" % (path, filename.split('.')[0]), format="wav")
+    return
 
-def create_audio_element(filename, id="audio2"):
-    text =  """<audio id="%s" preload=\"auto\" src = "%s"> \n
-    <p> Your browser does not support the audio element </p>\n
-    </audio>\n 
-    """%(id, filename)
-    return text
-
-
-def create_js(all_audio):
-    audio_ids = all_audio.keys()
-    audio_id_string = ""
-    for audio_id in audio_ids:
-        audio_id_string += "audios['%s']=document.getElementById(\"%s\")\n"%(audio_id, audio_id)
-    text = """
-    <script>\n
-    audios = {};\n
-    %s
-    for (var audio_id in audios) {\n
-      audios[audio_id].addEventListener("canplaythrough", function() {this.play();});\n
-    }\n
-    \n
-    function pauseAllAudio(){\n
-      for (var audio_id in audios) {\n
-      audios[audio_id].pause();\n
-    }\n
-    }\n
-    function setTime(curTime, audio_id){\n
-      pauseAllAudio();\n
-      audios[audio_id].currentTime = curTime; \n
-      audios[audio_id].play();\n
-    }\n
-    window.onload = function(){ pauseAllAudio() }\n
-    </script>\n
-    """%audio_id_string
-    return text
 
 def confidence_to_hex(confidence):
     return '#FF' + format(int(confidence * 255), 'x') + format(int(confidence * 255), 'x')
-
-def word_to_html(word, master_audio=None):
-    """
-    converts a word to an html element
-    :param word - dictionary with 'text': 
-    :return html - line of html that will play the word in the recording: 
-    """
-    confidence = 1.0
-    if 'confidence' in word:
-        confidence = word['confidence']
-    speaker = str(word['speaker'])
-    if master_audio is not None:
-        speaker = master_audio
-    #pdb.set_trace()
-    html = '<a rel="popover" id=word_' + word['nite:id']+ ' onClick="setTime(' + str(
-            word['starttime']) + ', \'' +  speaker + '\');" style="cursor: pointer; cursor: hand; background-color: #FF' + format(
-            int(confidence * 255), 'x') + format(int(confidence * 255), 'x') + '"> ' + word['text'] + ' </a>'
-    return html
-
-def audio_button_html():
-    return "<h1> <button type=\"button\" onclick = \"pauseAllAudio();\" > Stop Audio </button> </h1> <br>"
-
-
-def create_audio_html(filename, all_audio, words):
-    """
-    
-    :param filename: 
-    :param all_audio: dictionary with keys as audio track identifiers and value as the filename 
-    :param words: 
-    :return: 
-    """
-    with open(filename, 'w') as f:
-        f.write("{% extends \"header.html\" %} {% block body %}")
-        f.write('<body>')
-        f.write('\n')
-        for audio in all_audio:
-            f.write(create_audio_element(all_audio[audio], audio))
-        f.write('\n')
-        f.write(create_js(all_audio))
-        f.write('<br>')
-        f.write('\n')
-        f.write(audio_button_html())
-        f.write('\n')
-        f.write('<br>')
-        f.write('\n')
-        previous_speaker = -1
-        for word in words:
-            if previous_speaker is not word['speaker']:
-                f.write('<br>\n')
-                f.write('Speaker %d: '%word['speaker'])
-            f.write(word_to_html(word, master_audio='master'))
-            f.write(' ')
-            previous_speaker = word['speaker']
-        f.write('\n')
-        f.write('{% endblock %}')
 
 
 def generate_speaker_lines(words):
@@ -192,6 +93,8 @@ def aggregate_words(speaker_data):
     :param speaker_data: a list of speaker structures - dicts w/ fields 'id', 'starttime', 'endtime', 'text': 
     :return: 
     """
+    if len(speaker_data) is 0:
+        return []
     # Keep track of index for each speaker data
     speaker_index = [0] * len(speaker_data)
     done_speakers = [False] * len(speaker_data)

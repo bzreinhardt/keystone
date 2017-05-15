@@ -29,6 +29,18 @@ Example processing and html creation
 python keystone.py
 ```
 
+If  you are dealing with .mp3 files you will need to install <b>libav or ffmpeg</b> 
+Mac
+```bash
+# libav
+brew install libav --with-libvorbis --with-sdl --with-theora
+
+####    OR    #####
+
+# ffmpeg
+brew install ffmpeg --with-libvorbis --with-ffplay --with-theora
+```
+
 ### Adding a File
 To upload an audio file to aws and associate it with a transcript, use
 ```bash

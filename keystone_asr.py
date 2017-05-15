@@ -46,17 +46,30 @@ def words_from_json(watson_json, name=""):
             start = word[1]
             end = word[2]
             confidence = result['alternatives'][0]['word_confidence'][i][1]
-            word = {'text': text, 'start': start, 'end': end, 'confidence': confidence}
+            word = {'text': text, 'starttime': start, 'endtime': end, 'confidence': confidence}
             words.append(word)
 
+        #assign speakers
+    if 'speaker_labels' in watson_json:
+        speaker_index = 0
+        for word in words:
+            # naive approach to just assign each word the speaker who is talking in the middle of the word
+            mean_time = (word['starttime'] + word['endtime'])/2.0
+            while not (watson_json['speaker_labels'][speaker_index]['from'] < mean_time and
+                               watson_json['speaker_labels'][speaker_index]['to'] > mean_time):
+                speaker_index += 1
+            word['speaker'] = watson_json['speaker_labels'][speaker_index]['speaker']
+            word['speaker_confidence'] = watson_json['speaker_labels'][speaker_index]['confidence']
     return words
+
 
 
     # go through
 
 
 # TODO: find if you can run watson from a url
-def run_watson(audio_file, duration, transcript_file=''):
+# TODO: this really needs to be asyncronous
+def run_watson(audio_file, duration=None, transcript_file=''):
     # use the audio file as the audio source
     r = sr.Recognizer()
     with sr.AudioFile(audio_file) as source:
@@ -66,11 +79,12 @@ def run_watson(audio_file, duration, transcript_file=''):
                                      username=credentials['watson']['username'],
                                      password=credentials['watson']['password'],
                                      show_all=True)
+
     except sr.UnknownValueError:
         print("IBM Speech to Text could not understand audio")
     except sr.RequestError as e:
         print("Could not request results from IBM Speech to Text service; {0}".format(e))
-    if len(transcript_file > 0):
+    if len(transcript_file) > 0:
         with open(transcript_file, 'w') as f:
             f.write(json.dumps(transcript, indent=4))
     return transcript
