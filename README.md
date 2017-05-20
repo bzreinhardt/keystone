@@ -29,6 +29,10 @@ Example processing and html creation
 python keystone.py
 ```
 
+Download the fork of speech_processing and add it to your python path
+https://github.com/bzreinhardt/speech_recognition
+
+
 If  you are dealing with .mp3 files you will need to install <b>libav or ffmpeg</b> 
 Mac
 ```bash

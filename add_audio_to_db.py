@@ -20,13 +20,21 @@ if __name__=="__main__":
     parser.add_argument('-n', '--name', default='')
     parser.add_argument('-d','--defaults', action='store_true')
     parser.add_argument('-t', '--transcript', action='store_true')
+    parser.add_argument('--deepgram', action='store_true')
     args = parser.parse_args()
 
     audio_key = args.name
     audio_file = args.audio_file
+
+    if len(audio_key) is 0 and audio_file is not None:
+        audio_key = os.path.split(audio_file)[-1].split(".")[0]
+
+    print("key name is: %s"%audio_key)
+
     xml_transcripts_folder = args.xml_transcripts_folder
 
     if args.defaults:
+        print("defaults")
         audio_file = DEFAULT_AUDIO_FILE
         xml_transcripts_folder = DEFAULT_XML_TRANSCRIPTS_FOLDER
 
@@ -38,10 +46,12 @@ if __name__=="__main__":
         mem_db = {"audio":dict(), "comments":dict()}
 
     speaker_data = []
-    for file in os.listdir(xml_transcripts_folder):
-        if file.split('.')[-1] == 'xml':
-            full_path = os.path.join(args.xml_transcripts_folder, file)
-            speaker_data.append(keystone.load_words(full_path))
+    #pdb.set_trace()
+    if xml_transcripts_folder:
+        for file in os.listdir(xml_transcripts_folder):
+            if file.split('.')[-1] == 'xml':
+                full_path = os.path.join(xml_transcripts_folder, file)
+                speaker_data.append(keystone.load_words(full_path))
 
     words = keystone.aggregate_words(speaker_data)
 
@@ -50,7 +60,7 @@ if __name__=="__main__":
             mem_db['audio'][audio_key]['transcript'] = words
         else:
             mem_db['audio'][audio_key] = {'transcript': words}
-
+    pdb.set_trace()
     if audio_file:
         aws_url = keyword_search.upload_to_aws(audio_file)
         if audio_key == '':
@@ -59,7 +69,6 @@ if __name__=="__main__":
             mem_db['audio'][audio_key] = {'aws_url': aws_url}
         else:
             mem_db['audio'][audio_key]['aws_url'] = aws_url
-
     # create a transcript with the file
     ibm_transcript = None
     if args.transcript:
@@ -73,6 +82,12 @@ if __name__=="__main__":
     if ibm_transcript:
         words = keystone_asr.words_from_json(ibm_transcript, name=audio_key)
         mem_db['audio'][audio_key]['ibm_transcript'] = words
+
+    if args.deepgram:
+        if 'aws_url' not in mem_db['audio'][audio_key]:
+            print ("ERROR: need to upload file to aws to use deepgram")
+        deepgram_id = keyword_search.index_audio_url( mem_db['audio'][audio_key]['aws_url'])
+        mem_db['audio'][audio_key]['deepgram_id'] = deepgram_id
 
     with open(DEFAULT_DB_FILE, 'w') as f:
         f.write(json.dumps(mem_db))

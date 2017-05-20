@@ -5,10 +5,26 @@
 </audio>
 <br>
 <h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
-<br>
-Enter keyword to search for:
-<br>
-<input type=text size=20 name=keyword id=keyword>
+Keyword Search:
+ <form id="keyword" action="" method="post" onsubmit="keywordSubmit();">
+            {{ form.csrf }}
+ 
+            <div class="input text">
+                {{ form.name.label }} {{ form.name }}
+            </div>
+
+            <input type="hidden" name="audio_key" id="form_audio_key" value="{{audio_key}}"/>
+ 
+            <div class="input submit">
+                <input type="submit" value="Submit" />
+            </div>
+</form>
+{% if keywords|length > 0 %}
+Keyword Times
+{% endif %}
+{% for keyword in keywords %}
+<a onClick="setTime({{keyword}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{keyword['hex_confidence']}}"> {{keyword}} </a>
+{% endfor %}
 <br>
 {% for line in lines %}
 Speaker {{line['speaker']}} : 

@@ -69,7 +69,10 @@ function sendComment(comment, endpoint) {
 	$.ajax({
 	url: endpoint,
 	type: "GET",
-	data: {text: comment['text'], words: comment['words'], audio_key:audio_key},
+	data: {text: comment['text'], 
+				 words: comment['words'], 
+				 audio_key:audio_key,
+				 type: comment['type']},
 	contentType: "application/json; charset=utf-8",
 	success: function(data) { 
 			console.log('received response with id: ' + data.result['id']);
@@ -110,7 +113,7 @@ function processComment(comment) {
 				// delete the words
 				for (i = 0; i < comment['words'].length; i++) {
 						document.getElementById(comment['words'][i]).style.display = 'none';
-				}  
+				}
 		}
 		if (comment['text'].substring(0, 6) == 'topic:') {
 				// collapse the topic 
@@ -139,6 +142,14 @@ function getSelectionText() {
 		console.log(text);
 		return text;
 }
+
+function keywordSubmit() {
+	console.log('form submitted');
+	var key = $('#form_audio_key');
+	key.value = audio_key;
+	return true;
+}
+
 
 function getSelectedElementTags() {
 		//TODO: there's a bug that makes it so you have to press ok or the prompt 
@@ -196,6 +207,7 @@ function getSelectedElementTags() {
 }
 
 // TODO: figure out why this is not being captured
+/*
 $('#keyword').keydown(function(event){
 	if (event.keyCode == 13 || event.which == 13) {
 		console.log('sending ' + $('#keyword').val());
@@ -205,6 +217,12 @@ $('#keyword').keydown(function(event){
         $("#result").text(data.result);
       });
     } 
+});
+*/
+$('#keyword').submit(function() {
+	console.log('form submitted');
+	var key = $('form_audio_key');
+	key.val(audio_key);
 });
 
 
