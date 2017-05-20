@@ -18,6 +18,28 @@ def mp3_to_wav(mp3_path):
     sound.export("%s/%s.wav" % (path, filename.split('.')[0]), format="wav")
     return
 
+def subsample_audio(file, start=0, stop=-1, out_file=''):
+    format = os.path.split(file)[-1].split('.')[-1]
+    sound = AudioSegment.from_file(file, format=format)
+    if stop < 0:
+        stop = len(sound)
+    subsample = sound[start:stop]
+    if len(out_file) > 0:
+        subsample.export('out_file', format="wav")
+    return subsample
+
+def slice_audio_file(file, sample_length, export = False):
+    format = os.path.split(file)[-1].split('.')[-1]
+    sound = AudioSegment.from_file(file, format=format)
+    subsamples = []
+    for i in range(0, len(sound), sample_length):
+        subsample = sound[i:i+sample_length]
+        if export:
+            name = "".join(file.split(".")[0:-1]) + "_%d.wav" % len(subsamples)
+            subsample.export(name, format="wav")
+        subsamples.append(subsample)
+    return subsamples
+
 
 def confidence_to_hex(confidence):
     return '#FF' + format(int(confidence * 255), 'x') + format(int(confidence * 255), 'x')
@@ -226,4 +248,4 @@ def test_full_stack():
 
 
 if __name__=='__main__':
-    test_full_stack()
+    print("woooooooo")

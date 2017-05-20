@@ -1,5 +1,6 @@
 #!/usr/bin/python
-from flask import Flask, url_for, json,  request, jsonify, render_template
+from flask import Flask, url_for, json,  request, jsonify, render_template, flash
+from wtforms import Form, TextField, TextAreaField, validators, StringField, SubmitField
 import os
 import boto3
 import random
@@ -69,23 +70,29 @@ class Comment(db.Model):
     words = db.Column(db.String(800))
     text = db.Column(db.String(120))
     audio_id = db.Column(db.String(80))
+    type = db.Column(db.String(80))
 
-    def __init__(self, key, words='', text='', audio_id=''):
+    def __init__(self, key, words='', text='', audio_id='', type='comment'):
         self.key = key
         self.words = words
         self.text = text
         self.audio_id = audio_id
+        self.type = type
 
     def __repr__(self):
         return '<Words: %s, comment:%s>' % (self.words, self.text)
 
     def to_dict(self):
-        return {"words":self.words, "text":self.text, "audio_id":self.audio_id}
+        return {"words":self.words, "text":self.text, "audio_id":self.audio_id, "type":self.type}
 
     def from_dict(self, d):
         self.words = d['words']
         self.text = d['text']
         self.audio_id = d['audio_id']
+        self.type = d['type']
+
+class ReusableForm(Form):
+    name = TextField('Name:', validators=[validators.required()])
 
 
 def load_settings(settings_file):
@@ -125,6 +132,7 @@ def db_add(comment):
     db.session.add(comment)
     if app.config['use_json_db']:
         mem_db['comments'][comment.key]=comment.to_dict()
+        mem_db['audio'][comment.audio_id]['comments'].append(comment.key)
 
 
 def db_commit():
@@ -136,23 +144,41 @@ def db_commit():
 
 
 
+
 @app.route('/_comments')
-def print_comment():
+def add_comment():
     """Add two numbers server side, ridiculous but well..."""
     comment_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    #pdb.set_trace()
     text = request.args.get('text')
     words = request.args.getlist('words[]')
-    print('got comment with text %s and words'%text)
-    print(words)
+    type = request.args.get('type')
+    audio_id = request.args.get('audio_key')
     response = dict()
     response['id'] = comment_id
-    print(response)
-    comment = Comment(comment_id, words=json.dumps(words), text=text, audio_id=request.args.get('audio_key'))
+    comment = Comment(comment_id, words=json.dumps(words), text=text, audio_id=audio_id, type=type)
     db_add(comment)
+    db_commit()
+    return jsonify(result=response)
+
+
+@app.route('/_topics')
+def add_topic():
+    comment_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    audio_id = request.args.get('audio_id')
+    text = request.args.get('text')
+    words = request.args.getlist('words[]')
+    response = dict()
+    response['id'] = comment_id
+    topic = Topic(comment_id, words=json.dumps(words), text=text, audio_id=audio_id)
+    db_add(topic)
     db_commit()
     print("saved to DB")
     return jsonify(result=response)
+
+
+@app.route('/_deletes')
+def add_delet():
+    return 0
 
 
 @app.route('/_upload_audio')
@@ -163,15 +189,29 @@ def load_audio():
     return 0
 
 
-@app.route('/audio/<audio_key>')
+@app.route('/audio/<audio_key>', methods=['GET', 'POST'])
 def display_audio(audio_key):
+    form = ReusableForm(request.form)
     if 'transcript_type' in request.args:
         transcript_type = request.args.get('transcript_type')
     else:
         transcript_type = 'transcript'
+    keywords = {}
+    if request.method == 'POST':
+        keyword = request.form['name']
+        print("keyword = %s audio_key = %s"%(keyword, audio_key))
+        content_id = mem_db['audio'][audio_key]['deepgram_id']
+        keyword_results = json.loads(keyword_search.audio_search(content_id, keyword))
+
+        print(keyword_results)
+        #pdb.set_trace()
+
+        for i, confidence in enumerate(keyword_results['P']):
+            keywords[keyword_results['startTime'][i]] = keystone.confidence_to_hex(confidence)
+        # need to do some pruning on results
     lines = keystone.generate_speaker_lines(mem_db['audio'][audio_key][transcript_type])
     audio_url = mem_db['audio'][audio_key]['aws_url']
-    return render_template('audio_page.html', lines=lines, audio_key=audio_key, audio_url=audio_url)
+    return render_template('audio_page.html', lines=lines, audio_key=audio_key, audio_url=audio_url, form=form, keywords=keywords)
 
 
 @app.route('/_audio_search')

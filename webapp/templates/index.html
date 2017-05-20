@@ -80,8 +80,10 @@
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th> Audio </th>
-                  <th> Has_transcript </th>
+                  <th style="max-width:50px;"> Audio </th>
+                  <th> Has_manual_transcript </th>
+                  <th> Has_ibm_transcript </th>
+                  <th> Has Deepgram index </th>
                 </tr>
               </thead>
               <tbody>
@@ -92,6 +94,14 @@
                         True
                       {% endif %}        
                   </td>
+                  <td>{% if 'ibm_transcript' in audios[audio] %}
+                        True
+                      {% endif %}        
+                  </td>
+                  <td>{% if 'deepgram_id' in audios[audio] %}
+                        True
+                      {% endif %}        
+                  </td>  
                 </tr>
                 {% endfor %}
               </tbody>
