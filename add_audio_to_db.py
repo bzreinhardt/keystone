@@ -8,9 +8,9 @@ import keystone_asr
 import string
 import pdb
 
-DEFAULT_XML_TRANSCRIPTS_FOLDER = "%s/webapp/test_data"%os.environ['KEYSTONE']
-DEFAULT_DB_FILE= "%s/webapp/db.json"%os.environ['KEYSTONE']
-DEFAULT_AUDIO_FILE="%s/webapp/test_data/"%os.environ['KEYSTONE']
+DEFAULT_XML_TRANSCRIPTS_FOLDER = "%s/experimental_webapp/test_data"%os.environ['KEYSTONE']
+DEFAULT_DB_FILE= "%s/experimental_webapp/db.json"%os.environ['KEYSTONE']
+DEFAULT_AUDIO_FILE="%s/experimental_webapp/test_data/"%os.environ['KEYSTONE']
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
