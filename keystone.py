@@ -159,10 +159,11 @@ def word_list_to_string(word_list, add_speaker=False):
     transcript = ""
     current_speaker = -1
     for word in word_list:
-        if word['speaker'] is not current_speaker and add_speaker:
-            transcript += "\n"
-            transcript += "Speaker_%d: " % word['speaker']
-            current_speaker = word['speaker']
+        if 'speaker' in word:
+            if word['speaker'] is not current_speaker and add_speaker:
+                transcript += "\n"
+                transcript += "Speaker_%d: " % word['speaker']
+                current_speaker = word['speaker']
         transcript += "%s "%word['text']
     return transcript
 

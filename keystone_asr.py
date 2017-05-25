@@ -24,17 +24,27 @@ DURATION = 59
 # AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "chinese.flac")
 
 
-def wav_to_flac(audio_file, duration=None):
+def wav_to_flac(audio_file, duration=None, stereo_to_mono=False):
     (directory, filename) = os.path.split(audio_file)
     name = ".".join(filename.split(".")[:-1])
     r = sr.Recognizer()
     with sr.AudioFile(audio_file) as source:
-        audio = r.record(source, duration=duration)
-    out_name = "%s/%s.flac" % (directory, name)
+        # If the file is stereo this will be a list if stereo_to_mono is false
+        audio = r.record(source, duration=duration, stereo_to_mono=stereo_to_mono)
+    out_name_base = "%s/%s"  % (directory, name)
     if duration:
-        out_name = "%s/%s_%ds.flac" % (directory, name, duration)
-    r.write_flac(audio, out_name)
-    return out_name
+        out_name_base = "%s_%d" % duration
+    if source.audio_reader.getnchannels() > 1 and not stereo_to_mono:
+        out_left = "%s_l.flac" % out_name_base
+        out_right = "%s_r.flac" % out_name_base
+        r.write_flac(audio[0], out_left)
+        r.write_flac(audio[1], out_right)
+        file = (out_left, out_right)
+    else:
+        out_name = "%s.flac" % out_name_base
+        r.write_flac(audio, out_name)
+        file = out_name
+    return file
 
 def assign_speaker_labels(words, speakers):
     # assumes words and speakers are all in temporal order
@@ -146,8 +156,8 @@ def transcribe_gcs(gcs_uri, name=""):
     audio_sample = speech_client.sample(
         content=None,
         source_uri=gcs_uri,
-        encoding='FLAC')
-        #sample_rate_hertz=16000)
+        encoding='FLAC',
+        sample_rate_hertz=8000)
 
     operation = audio_sample.long_running_recognize('en-US')
 
