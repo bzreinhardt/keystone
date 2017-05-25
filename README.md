@@ -11,6 +11,11 @@ cd keystone
 export KEYSTONE=${pwd}
 ```
 
+If you plan to use Google for speech recognition, obtain the credentials json file with these instructions [instructions](https://cloud.google.com/speech/docs/common/auth) and 
+```bash
+$ export GOOGLE_APPLICATION_CREDENTIALS=<path_to_service_account_file>
+```
+
 Create a Conda environment (You will need to [Install Conda](https://conda.io/docs/install/quick.html) first)
 
 ```bash
