@@ -1,1 +1,9 @@
 html_test
+
+# osx
+.DS_Store
+db.sqlite3
+
+# data directories
+amicorpus/
+amicorp_generated_crosstalk_data/

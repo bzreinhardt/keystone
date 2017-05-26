@@ -1,0 +1,10 @@
+<html>
+<body>
+  <form method="POST" action="{% url 'call' %}">
+    Your number: <input name="orig" type="text" value="+18587406507"><br>
+    Their number: <input name="dest" type="text" value="+17752668469"><br>
+    {% csrf_token %}
+    <input type="submit" value="Call">
+  </form>
+</body>
+</html>

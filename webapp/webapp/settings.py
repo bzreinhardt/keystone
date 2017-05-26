@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import requests
+from urllib.parse import urlparse
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,10 +29,30 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+if DEBUG:
+    ALLOWED_HOSTS.append('127.0.0.1')
+    r = requests.get('http://localhost:4040/api/tunnels')
+    tunnels = r.json()['tunnels']
+    found_ngrok = False
+    for tunnel in tunnels:
+        print(tunnel['name'])
+        # assumes we only run django on port 8000
+        if tunnel['config']['addr'].split(':')[-1] == '8000':
+            ngrok_host = urlparse(tunnel['public_url']).hostname
+            print('Found ngrok tunnel at {} and added it to ALLOWED_HOSTS'.format(ngrok_host))
+            ALLOWED_HOSTS.append(ngrok_host)
+            found_ngrok = True
+    if not found_ngrok:
+        print('No ngrok tunnels found; developing webhooks (eg for Twilio) may be difficult')
+else:
+    pass # someday add the real URL here
+    
+
 
 # Application definition
 
 INSTALLED_APPS = [
+    'twilio_caller.apps.TwilioCallerConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
