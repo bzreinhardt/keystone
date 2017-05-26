@@ -9,9 +9,19 @@ from operator import itemgetter
 DB = '/Users/Zaaron/Code/keystone/experimental_webapp/db.json'
 KEY = 'test_audio'
 
+# Identify grammatically incorrect sentences
+# ID Fragment sentences
+# Pull out subject object
+# Need to figure out what pronouns correspond to
+
+
 def clean_up_sentence(sentence):
     #Replace "he was . like" with "he said"
-
+    re.sub(r"was.like", "said", sentence)
+    #Yeah is almost always bad
+    re.sub(r"[Yy]eah[, ]", "", sentence)
+    # Replace literally repeated things
+    return sentence
 
 def pull_out_relevent(sentence_list):
     """
@@ -65,9 +75,9 @@ def create_notes(important_indices, action_indices, sentence_list):
     action_sentences = []
     important_sentences = []
     for group in important_groups:
-        important_sentences.append((" ").join([sentence_list[i] for i in group]))
+        important_sentences.append(clean_up_sentence((" ").join([sentence_list[i] for i in group])))
     for group in action_groups:
-        action_sentences.append((" ").join([sentence_list[i] for i in group]))
+        action_sentences.append(clean_up_sentence((" ").join([sentence_list[i] for i in group])))
     return important_sentences, action_sentences
 
 
@@ -85,7 +95,7 @@ if __name__=="__main__":
     important_indices = process_sentences(important_indices)
     action_indices = process_sentences(action_indices)
     important_sentences, action_sentences = create_notes(important_indices, action_indices, sentences)
-    
+
     divider = '\n-----\n'
     print ("IMPORTANT SENTENCES:")
     print (divider.join(important_sentences))
