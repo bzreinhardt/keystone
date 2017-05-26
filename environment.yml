@@ -1,129 +1,83 @@
-name: mindstone
+name: keystone
 channels:
-- !!python/unicode
-  'conda-forge'
-- !!python/unicode
-  'defaults'
+- conda-forge
+- defaults
 dependencies:
-- !!python/unicode
-  'nb_conda_kernels=2.1.0=py36_0'
-- !!python/unicode
-  'appnope=0.1.0=py36_0'
-- !!python/unicode
-  'bleach=1.5.0=py36_0'
-- !!python/unicode
-  'curl=7.52.1=0'
-- !!python/unicode
-  'decorator=4.0.11=py36_0'
-- !!python/unicode
-  'entrypoints=0.2.2=py36_1'
-- !!python/unicode
-  'html5lib=0.999=py36_0'
-- !!python/unicode
-  'icu=54.1=0'
-- !!python/unicode
-  'ipykernel=4.6.1=py36_0'
-- !!python/unicode
-  'ipython=6.0.0=py36_0'
-- !!python/unicode
-  'ipython_genutils=0.2.0=py36_0'
-- !!python/unicode
-  'ipywidgets=6.0.0=py36_0'
-- !!python/unicode
-  'jinja2=2.9.6=py36_0'
-- !!python/unicode
-  'jsonschema=2.6.0=py36_0'
-- !!python/unicode
-  'jupyter=1.0.0=py36_3'
-- !!python/unicode
-  'jupyter_client=5.0.1=py36_0'
-- !!python/unicode
-  'jupyter_console=5.1.0=py36_0'
-- !!python/unicode
-  'jupyter_core=4.3.0=py36_0'
-- !!python/unicode
-  'markupsafe=0.23=py36_2'
-- !!python/unicode
-  'mistune=0.7.4=py36_0'
-- !!python/unicode
-  'nbconvert=5.1.1=py36_0'
-- !!python/unicode
-  'nbformat=4.3.0=py36_0'
-- !!python/unicode
-  'notebook=5.0.0=py36_0'
-- !!python/unicode
-  'openssl=1.0.2k=1'
-- !!python/unicode
-  'pandocfilters=1.4.1=py36_0'
-- !!python/unicode
-  'path.py=10.3.1=py36_0'
-- !!python/unicode
-  'pexpect=4.2.1=py36_0'
-- !!python/unicode
-  'pickleshare=0.7.4=py36_0'
-- !!python/unicode
-  'pip=9.0.1=py36_1'
-- !!python/unicode
-  'prompt_toolkit=1.0.14=py36_0'
-- !!python/unicode
-  'ptyprocess=0.5.1=py36_0'
-- !!python/unicode
-  'pycurl=7.43.0=py36_2'
-- !!python/unicode
-  'pygments=2.2.0=py36_0'
-- !!python/unicode
-  'pyqt=5.6.0=py36_2'
-- !!python/unicode
-  'python=3.6.1=0'
-- !!python/unicode
-  'python-dateutil=2.6.0=py36_0'
-- !!python/unicode
-  'pyzmq=16.0.2=py36_0'
-- !!python/unicode
-  'qt=5.6.2=0'
-- !!python/unicode
-  'qtconsole=4.3.0=py36_0'
-- !!python/unicode
-  'readline=6.2=2'
-- !!python/unicode
-  'setuptools=27.2.0=py36_0'
-- !!python/unicode
-  'simplegeneric=0.8.1=py36_1'
-- !!python/unicode
-  'sip=4.18=py36_0'
-- !!python/unicode
-  'six=1.10.0=py36_0'
-- !!python/unicode
-  'sqlite=3.13.0=0'
-- !!python/unicode
-  'terminado=0.6=py36_0'
-- !!python/unicode
-  'testpath=0.3=py36_0'
-- !!python/unicode
-  'tk=8.5.18=0'
-- !!python/unicode
-  'tornado=4.5.1=py36_0'
-- !!python/unicode
-  'traitlets=4.3.2=py36_0'
-- !!python/unicode
-  'wcwidth=0.1.7=py36_0'
-- !!python/unicode
-  'wheel=0.29.0=py36_0'
-- !!python/unicode
-  'widgetsnbextension=2.0.0=py36_0'
-- !!python/unicode
-  'xz=5.2.2=1'
-- !!python/unicode
-  'zlib=1.2.8=3'
+- appnope=0.1.0=py36_0
+- bleach=1.5.0=py36_0
+- decorator=4.0.11=py36_0
+- entrypoints=0.2.2=py36_1
+- html5lib=0.999=py36_0
+- ipykernel=4.6.1=py36_0
+- ipython=6.0.0=py36_0
+- ipython_genutils=0.2.0=py36_0
+- ipywidgets=6.0.0=py36_0
+- jedi=0.10.0=py36_0
+- jupyter_client=5.0.1=py36_0
+- jupyter_console=5.1.0=py36_0
+- jupyter_core=4.3.0=py36_0
+- libsodium=1.0.10=0
+- mistune=0.7.4=py36_0
+- nb_conda_kernels=2.1.0=py36_0
+- nbconvert=5.1.1=py36_0
+- nbformat=4.3.0=py36_0
+- notebook=5.0.0=py36_0
+- pandoc=1.19.2=0
+- pandocfilters=1.4.1=py36_0
+- pexpect=4.2.1=py36_0
+- prompt_toolkit=1.0.14=py36_0
+- ptyprocess=0.5.1=py36_0
+- pygments=2.2.0=py36_0
+- pyqt=5.6.0=py36_2
+- python=3.6.1=0
+- python-dateutil=2.6.0=py36_0
+- pyzmq=16.0.2=py36_0
+- qtconsole=4.3.0=py36_0
+- sqlite=3.13.0=0
+- terminado=0.6=py36_0
+- testpath=0.3=py36_0
+- tornado=4.5.1=py36_0
+- traitlets=4.3.2=py36_0
+- wcwidth=0.1.7=py36_0
+- webencodings=0.5=py36_0
+- wheel=0.29.0=py36_0
+- widgetsnbextension=2.0.0=py36_0
+- zeromq=4.1.5=0
+- zlib=1.2.8=3
+- django=1.10.5=py36_0
+- icu=54.1=0
+- jinja2=2.9.6=py36_0
+- jsonschema=2.6.0=py36_0
+- jupyter=1.0.0=py36_3
+- markupsafe=0.23=py36_2
+- openssl=1.0.2k=1
+- path.py=10.3.1=py36_0
+- pickleshare=0.7.4=py36_0
+- pip=9.0.1=py36_1
+- qt=5.6.2=0
+- readline=6.2=2
+- setuptools=27.2.0=py36_0
+- simplegeneric=0.8.1=py36_1
+- sip=4.18=py36_0
+- six=1.10.0=py36_0
+- tk=8.5.18=0
+- xz=5.2.2=1
 - pip:
-  - boto==2.46.1
+  - appdirs==1.4.3
   - boto3==1.4.4
   - botocore==1.5.46
+  - cachetools==2.0.0
   - click==6.7
   - docutils==0.13.1
   - flask==0.12.1
-  - flask-script==2.0.5
   - flask-sqlalchemy==2.2
+  - google-auth==1.0.1
+  - google-auth-httplib2==0.0.2
+  - google-cloud-core==0.24.1
+  - google-cloud-storage==1.1.1
+  - google-resumable-media==0.0.2
+  - googleapis-common-protos==1.5.2
+  - httplib2==0.10.3
   - ipython-genutils==0.2.0
   - itsdangerous==0.24
   - jmespath==0.9.2
@@ -133,12 +87,23 @@ dependencies:
   - jupyter-core==4.3.0
   - nb-conda-kernels==2.1.0
   - numpy==1.12.1
+  - packaging==16.8
   - prompt-toolkit==1.0.14
+  - protobuf==3.3.0
+  - pyasn1==0.2.3
+  - pyasn1-modules==0.0.8
   - pydub==0.18.0
-  - requests==2.13.0
+  - pyjwt==1.5.0
+  - pyparsing==2.2.0
+  - pysocks==1.6.7
+  - pytz==2017.2
+  - requests==2.14.2
+  - rsa==3.4.2
   - s3transfer==0.1.10
+  - speechrecognition==3.6.5
   - sqlalchemy==1.1.9
+  - twilio==6.2.0
   - werkzeug==0.12.1
   - xmltodict==0.11.0
-prefix: !!python/unicode '//anaconda/envs/mindstone'
+prefix: /Users/noah/miniconda3/envs/keystone
 
