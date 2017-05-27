@@ -12,7 +12,7 @@ from os import path
 import json
 import time
 import pdb
-from credentials import credentials
+#from credentials import credentials
 
 FILE_NAME = "ES2016a.Mix-Headset"
 DIR_NAME = "/Users/Zaaron/Data/audio"
