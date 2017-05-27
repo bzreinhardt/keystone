@@ -8,6 +8,8 @@ DATA_DIR = os.environ['DATA_DIR']
 SERVER_STATIC_DIR = os.environ['KEYSTONE']+'/webapp/static'
 SERVER_TEMPLATE_DIR = os.environ['KEYSTONE']+'/webapp/templates'
 
+#def transcript_to_string
+
 
 def mp3_to_wav(mp3_path):
     (path, filename) = os.path.split(mp3_path)
@@ -148,7 +150,7 @@ def aggregate_words(speaker_data):
         done = all(done_speakers)
     return transcript
 
-def word_list_to_string(word_list):
+def word_list_to_string(word_list, add_speaker=False):
     """
     Takes a list of words and 
     :param transcript: 
@@ -157,10 +159,11 @@ def word_list_to_string(word_list):
     transcript = ""
     current_speaker = -1
     for word in word_list:
-        if word['speaker'] is not current_speaker:
-            transcript += "\n"
-            transcript += "Speaker_%d: " % word['speaker']
-            current_speaker = word['speaker']
+        if 'speaker' in word:
+            if word['speaker'] is not current_speaker and add_speaker:
+                transcript += "\n"
+                transcript += "Speaker_%d: " % word['speaker']
+                current_speaker = word['speaker']
         transcript += "%s "%word['text']
     return transcript
 

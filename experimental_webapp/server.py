@@ -131,6 +131,8 @@ def save_to_s3(key, data):
 def db_add(comment):
     db.session.add(comment)
     if app.config['use_json_db']:
+        if 'comments' not in mem_db['audio'][comment.audio_id]:
+            mem_db['audio'][comment.audio_id]['comments'] = []
         mem_db['comments'][comment.key]=comment.to_dict()
         mem_db['audio'][comment.audio_id]['comments'].append(comment.key)
 
@@ -147,7 +149,6 @@ def db_commit():
 
 @app.route('/_comments')
 def add_comment():
-    """Add two numbers server side, ridiculous but well..."""
     comment_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
     text = request.args.get('text')
     words = request.args.getlist('words[]')
@@ -199,12 +200,8 @@ def display_audio(audio_key):
     keywords = {}
     if request.method == 'POST':
         keyword = request.form['name']
-        print("keyword = %s audio_key = %s"%(keyword, audio_key))
         content_id = mem_db['audio'][audio_key]['deepgram_id']
         keyword_results = json.loads(keyword_search.audio_search(content_id, keyword))
-
-        print(keyword_results)
-        #pdb.set_trace()
 
         for i, confidence in enumerate(keyword_results['P']):
             keywords[keyword_results['startTime'][i]] = keystone.confidence_to_hex(confidence)
@@ -221,25 +218,6 @@ def audio_search():
     print("got query %s" % query)
     response = keyword_search.search_results(query, app.config['DEEPGRAM_AUDIO_ID'])
     return response
-
-
-
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_image():
-  
-  rand = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-  if not request.form.has_key('artistName'):
-    request.form['artistName'] = 'noname'
-  key = request.form['artistName'] + rand
-  art = Art(key, bucket=BUCKET_NAME, json_dict=request.form)
-  db.session.add(art)
-  db.session.commit()
-  data = request.files['image'].stream.read()
-  print("DATA SIZE: %s" % len(data))
-  save_to_s3(key, data)
-  print("SAVED TO KEY: %s"%key)
-  return 'success'
-
 
 
 

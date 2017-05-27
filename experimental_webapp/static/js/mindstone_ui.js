@@ -124,7 +124,7 @@ function processComment(comment) {
 				$(start_element).each(function() {
 						$(this).add($(this).nextUntil(stop_element)).wrapAll(div_text);
 				});
-				text = "<br>\n<b>\n <a onclick=\"setTime(0.0);\" href=\"#"+current_topic_id+"\" data-toggle=\"collapse\" aria-expanded=\"true\" class=\"\" id=\"" + current_topic_id + "_controller\"> TOPIC:" + topic + "</a></b>\n<br>";
+				text = "<br>\n<b>\n <a href=\"#"+current_topic_id+"\" data-toggle=\"collapse\" aria-expanded=\"true\" class=\"\" id=\"" + current_topic_id + "_controller\"> TOPIC:" + topic + "</a></b>\n<br>";
 				var fragment = create(text);
 				document.body.insertBefore(fragment, document.getElementById(current_topic_id));
 				$("#"+current_topic_id).collapse("hide")
@@ -148,6 +148,14 @@ function keywordSubmit() {
 	var key = $('#form_audio_key');
 	key.value = audio_key;
 	return true;
+}
+
+function clearSelection() {
+    if ( document.selection ) {
+        document.selection.empty();
+    } else if ( window.getSelection ) {
+        window.getSelection().removeAllRanges();
+    }
 }
 
 
@@ -201,7 +209,7 @@ function getSelectedElementTags() {
 						comments.push(comment);
 				}
 				
-				//$(elmlist[0]).popover("show");
+				clearSelection();
 				return elmlist;
 		}
 }

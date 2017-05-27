@@ -1,5 +1,9 @@
 html_test
 
+# python
+*.pyc
+__pycache__/
+
 # osx
 .DS_Store
 db.sqlite3

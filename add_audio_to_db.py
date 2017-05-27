@@ -39,14 +39,12 @@ if __name__=="__main__":
         xml_transcripts_folder = DEFAULT_XML_TRANSCRIPTS_FOLDER
 
     if os.path.isfile(DEFAULT_DB_FILE):
-        #pdb.set_trace()
         with open(DEFAULT_DB_FILE, 'r') as f:
             mem_db = json.loads(f.read())
     else:
         mem_db = {"audio":dict(), "comments":dict()}
 
     speaker_data = []
-    #pdb.set_trace()
     if xml_transcripts_folder:
         for file in os.listdir(xml_transcripts_folder):
             if file.split('.')[-1] == 'xml':
@@ -60,7 +58,6 @@ if __name__=="__main__":
             mem_db['audio'][audio_key]['transcript'] = words
         else:
             mem_db['audio'][audio_key] = {'transcript': words}
-    pdb.set_trace()
     if audio_file:
         aws_url = keyword_search.upload_to_aws(audio_file)
         if audio_key == '':
