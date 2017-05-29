@@ -9,6 +9,9 @@ import sys
 
 import requests
 
+from google.cloud import storage
+
+# TODO: https://stackoverflow.com/a/3856947/554487
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
 from keystone_asr import wav_to_flac, transcribe_gcs
 from pprint import pprint
@@ -62,9 +65,31 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
             f.write(r.content)
             print('saved to {}'.format(recording_path))
         
-        wav_to_flac(recording_path)
+        lpath, rpath = wav_to_flac(recording_path)
 
-        
+        print(' left channel saved at ' + lpath)
+        print('right channel saved at ' + rpath)
+
+        client = storage.Client()
+        bucket = client.get_bucket('illiad-audio')
+        print('uploading left channel...')
+        lbase = path.basename(lpath)
+        lblob = bucket.blob(lbase)
+        with open(lpath, 'rb') as f:
+            lblob.upload_from_file(f)
+        print('done uploading left channel. now uploading right channel...')
+        rbase = path.basename(rpath)
+        rblob = bucket.blob(rbase)
+        with open(rpath, 'rb') as f:
+            rblob.upload_from_file(f)
+        print('done uploading right channel. now transcribing left channel...')
+        lwords = transcribe_gcs('gs://illiad-audio/' + lbase)
+        print('done transcribing left channel. now transcribing right channel...')
+        rwords = transcribe_gcs('gs://illiad-audio/' + rbase)
+        print('---- transcription: right ----')
+        pprint(lwords)
+        print('---- transcription: left ----')
+        pprint(rwords)
 
 @csrf_exempt
 @require_http_methods(["POST"])
