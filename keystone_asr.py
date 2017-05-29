@@ -12,7 +12,7 @@ from os import path
 import json
 import time
 import pdb
-from credentials import credentials
+#from credentials import credentials
 
 FILE_NAME = "ES2016a.Mix-Headset"
 DIR_NAME = "/Users/Zaaron/Data/audio"
@@ -177,11 +177,21 @@ def transcribe_gcs(gcs_uri, name=""):
         words.append({"id":"%s_%d"%(name, i), "text":alternative.transcript, "confidence":alternative.confidence})
     return words
 
+def transcribe_microsoft(audio_file, name="", duration=None):
+    key = os.environ["BING_SPEECH_KEY"]
+    r = sr.Recognizer()
+    with sr.AudioFile(audio_file) as source:
+        audio = r.record(source, duration=duration)
+    transcript = r.recognize_bing(audio, key, show_all=True)
+    return transcript
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", default="test")
     parser.add_argument("--transcribe", action="store_true")
     parser.add_argument("--convert", action="store_true")
+    parser.add_argument("--bing_transcribe", action="store_true")
     parser.add_argument("--audio_file")
 
     args = parser.parse_args()
@@ -194,8 +204,13 @@ if __name__ == "__main__":
             f.write(json.dumps(transcript))
     if args.convert:
         wav_to_flac(args.audio_file)
-
-
+    if args.bing_transcribe:
+        transcript_file = "%s_bing_transcript.json" % args.name
+        audio_file = args.audio_file
+        name = args.name
+        transcript = transcribe_microsoft(audio_file, name=name)
+        with open(transcript_file, 'w') as f:
+            f.write(json.dumps(transcript))
 
 """
 # recognize speech using Sphinx
