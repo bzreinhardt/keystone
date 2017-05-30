@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from twilio.rest import Client as Twilio
@@ -26,14 +27,16 @@ def index(request):
 def call(request):
     orig, dest = request.POST['orig'], request.POST['dest']
     twilio.api.account.calls.create(
-        to=orig, from_='+16197276734', # 
-        url="http://"+request.META['HTTP_HOST']+"/twilio_caller/connect_endpoint")
+        to=orig, from_='+16197276734', # this is our Twilio phone number
+        url='http://{}{}'.format(request.META['HTTP_HOST'],
+                                 reverse('connect_endpoint', args=[dest])))
     return HttpResponse('Making call to {} now...'.format(dest))
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def connect(request):
-    return render(request, 'twilio_caller/call.xml')
+def connect(request, number_to_connect):
+    return render(request, 'twilio_caller/call.xml',
+                  { 'number_to_connect': number_to_connect })
 
 class ProcessRecordingAfterHttpResponse(HttpResponse):
     '''Send HttpResponse and then download & process Twilio call.

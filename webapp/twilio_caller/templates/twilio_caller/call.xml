@@ -3,5 +3,5 @@
     <!--<Say>Noah Tye has set up this call using Keystone, which will automatically take notes for you.  Connecting you to Noah now...</Say>-->
     <Say>dev</Say>
     <Dial record="record-from-answer-dual"
-          recordingStatusCallback="http://{{ request.META.HTTP_HOST }}{% url 'record_callback' %}">+18587406507</Dial>
+          recordingStatusCallback="http://{{ request.META.HTTP_HOST }}{% url 'record_callback' %}">{{ number_to_connect }}</Dial>
 </Response>
