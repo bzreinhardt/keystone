@@ -24,6 +24,23 @@ conda env create environment.yml
 source activate keystone
 ```
 
+### Install ngrok
+
+Ngrok is a tunnel used to expose your development web server to the public web.  This is necessary for Twilio's webhooks API.
+
+Download [ngrok](http://ngrok.com).  Unzip the package, which just contains a binary, and move it to some directory on your `$PATH`--I use `~/bin/`.  Run `ngrok http 8000` to set up a proxy to your machine at port 8000, which is where the Django development server will listen.
+
+### Run our web server
+
+```
+cd keystone/webapp
+python manage.py runserver
+```
+
+You should see a few messages saying that the server found an ngrok tunnel, something like `d7b5194.ngrok.io`.  Go there in a web browser and you should see our web app.
+
+### Amicorpus data
+
 Download amicorpus data
 ```bash
 run set_up_data.sh
@@ -34,14 +51,10 @@ Example processing and html creation
 python keystone.py
 ```
 
-Download the fork of speech_processing and add it to your python path
-https://github.com/bzreinhardt/speech_recognition
-
-
-If  you are dealing with .mp3 files you will need to install <b>libav or ffmpeg</b> 
+If you are dealing with .mp3 files you will need to install <b>libav or ffmpeg</b> 
 Mac
 ```bash
-# libav
+### libav
 brew install libav --with-libvorbis --with-sdl --with-theora
 
 ####    OR    #####
