@@ -13,6 +13,8 @@ HRESHOLD = 50
 
 rate, data = wavfile.read(path)
 
+
+
 def contiguous_regions(condition):
     """Finds contiguous True regions of the boolean array "condition". Returns
     a 2D array where the first column is the start index of the region and the
@@ -41,7 +43,7 @@ def contiguous_regions(condition):
 def consecutive(data, stepsize=1):
     return np.split(data, np.where(np.diff(data) != stepsize)[0] + 1)
 
-def find_unique_midpoints(midpoints_array, similarity_factor):
+def find_unique_midpoints(midpoints_array, similarity_factor=0):
     """
     
     :param midpoints_array: 1xn array 
@@ -49,7 +51,7 @@ def find_unique_midpoints(midpoints_array, similarity_factor):
     """
     groups = consecutive(midpoints_array)
     midpoints = np.array([int(np.mean(group)) for group in groups])
-    pdb.set_trace()
+    #pdb.set_trace()
     return midpoints
 
 def find_divisions(audio, silence_sec, rate, threshold=50):
@@ -65,7 +67,7 @@ def find_divisions(audio, silence_sec, rate, threshold=50):
         long_enough = (silent_regions[:,1] - silent_regions[:,0] > silence)
         # this is going to be an nx2 array of the long silent regions
         long_regions = silent_regions[long_enough, :]
-        pdb.set_trace()
+        #pdb.set_trace()
         midpoints = list(find_unique_midpoints(((long_regions[:,1]-long_regions[:,0])/2 + long_regions[:,0]).astype("int32")))
         all_midpoints.append(midpoints)
     return all_midpoints
@@ -73,7 +75,9 @@ def find_divisions(audio, silence_sec, rate, threshold=50):
 
 
 all_midpoints = find_divisions(data, SILENCE, rate)
-print(len(all_midpoints[0]))
+print("Number of found midpoints is \n"
+      "channel1: %d \n"
+      "channel2: %d \n" % (len(all_midpoints[0]), len(all_midpoints[2])))
 directory, file = os.path.split(path)
 name = file.split(".")[0]
 flac_dir = "%s/%s_split"%(directory,name)
