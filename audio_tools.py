@@ -8,15 +8,43 @@ import sys
 import math
 from utility import progress_bar
 
-path="/Users/Zaaron/Data/audio/ben_noah_5_23.wav"
+PATH="/Users/Zaaron/Data/audio/ben_noah_5_23.wav"
 
 # division time heurisitc in seconds
 SILENCE = 0.5 #seconds
-HRESHOLD = 50
+THRESHOLD = 50
+ENCODING_MULT_FACTOR= 100
 
 
 
+def encode_filename(name, channel=None, timestamp=None, extension="flac"):
+    out = name
+    if channel is not None:
+        out = out +"_channel_%d" % channel
+    # Note that this means that we're only encoding timestamps to 100th of a second
+    if timestamp:
+        out = out + "_timestamp_%d" % int(timestamp * ENCODING_MULT_FACTOR)
+    out = out + ".%s" % extension
+    return out
 
+def decode_filename(filepath):
+    info = {}
+    info["extension"] = os.path.basename(filepath).split(".")[-1]
+    pieces = os.path.basename(filepath).split(".")[0].split("_")
+    name = ""
+    #pdb.set_trace()
+    for i, piece in enumerate(pieces):
+        if piece != "channel" and not "channel" in info:
+            if i is 0:
+                name += piece
+            else:
+                name += "_" + piece
+        if piece == "channel":
+            info["channel"] = int(pieces[i+1])
+        if piece == "timestamp":
+            info["timestamp"] = float(pieces[i+1])/100.0
+    info["name"] = name
+    return info
 
 def contiguous_regions(condition):
     """Finds contiguous True regions of the boolean array "condition". Returns
@@ -75,16 +103,15 @@ def find_divisions(audio, silence_sec, rate, threshold=50):
         all_midpoints.append(midpoints)
     return all_midpoints
 
-
-if __name__=="__main__":
-    rate, data = wavfile.read(path)
+def slice_wav_file(wav_file):
+    rate, data = wavfile.read(wav_file)
     all_midpoints = find_divisions(data, SILENCE, rate)
     print("Number of found midpoints is \n"
           "channel1: %d \n"
           "channel2: %d \n" % (len(all_midpoints[0]), len(all_midpoints[1])))
-    directory, file = os.path.split(path)
+    directory, file = os.path.split(wav_file)
     name = file.split(".")[0]
-    flac_dir = "%s/%s_split"%(directory,name)
+    flac_dir = "%s/%s_split" % (directory, name)
     if not os.path.isdir(flac_dir):
         os.mkdir(flac_dir)
     for i, channel in enumerate(all_midpoints):
@@ -94,9 +121,14 @@ if __name__=="__main__":
             elif j is len(channel) - 1:
                 slice = data[midpoint:-1, i]
             else:
-                slice = data[channel[j-1]:midpoint, i]
-            #pdb.set_trace()
-            time_in_sec = float(midpoint)/float(rate)
-            outfile = "%s/%s_channel_%d_timestamp_%d.flac"%(flac_dir, name, i, int(100*time_in_sec))
-            progress_bar(j, len(channel))
-            sf.write(outfile, slice, rate)
+                slice = data[channel[j - 1]:midpoint, i]
+            # pdb.set_trace()
+            time_in_sec = float(midpoint) / float(rate)
+            outfile = encode_filename(name, channel=i, timestamp=time_in_sec, extension="flac")
+            progress_bar(j, len(channel), "writing flac file: ")
+            sf.write(os.path.join(flac_dir, outfile), slice, rate)
+    return directory
+
+
+if __name__=="__main__":
+    slice_wav_file(PATH)

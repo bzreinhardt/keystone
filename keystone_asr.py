@@ -11,6 +11,10 @@ import speech_recognition as sr
 from os import path
 import json
 import time
+from google.cloud import storage
+from google.cloud import speech
+from utility import progress_bar
+from audio_tools import decode_filename
 import pdb
 #from credentials import credentials
 
@@ -20,8 +24,32 @@ AUDIO_FILE = path.join(DIR_NAME, "%s.wav" % FILE_NAME)
 CLOUD_AUDIO_FILE = "gs://illiad-audio/ES2016a.Mix-Headset.flac"
 TRANSCRIPT_FILE = path.join(DIR_NAME, "%s_google_transcript.json" % FILE_NAME)
 DURATION = 59
+GOOGLE_STORAGE = "gs://"
 # AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "french.aiff")
 # AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "chinese.flac")
+
+
+def upload_folder(root, folder='', bucket_name='illiad-audio'):
+    """
+    Uploads a folder to google cloud storage
+    :param path: path to the folder 
+    :param bucket_name: name of the bucket to upload to
+    :return: list of paths to files
+    """
+    client = storage.Client()
+    bucket = client.get_bucket(bucket_name)
+    blob_names = []
+    files = os.listdir(os.path.join(root,folder))
+    for i, file in enumerate(files):
+        progress_bar(i, len(files), text="uploading file:")
+        blob_name = "%s/%s"%(folder, file)
+        blob = bucket.blob(blob_name)
+        with open(os.path.join(root, folder, file), 'rb') as f:
+            blob.upload_from_file(f)
+        blob_names.append(blob_name)
+    return blob_names
+
+
 
 
 def wav_to_flac(audio_file, duration=None, stereo_to_mono=False):
@@ -148,9 +176,11 @@ def run_google(audio_file, duration=None, transcript_file=''):
     except sr.RequestError as e:
         print("Could not request results from Google Cloud Speech service; {0}".format(e))
 
-def transcribe_gcs(gcs_uri, name=""):
+
+def get_google_transcription(gcs_uri):
     """Asynchronously transcribes the audio file specified by the gcs_uri."""
-    from google.cloud import speech
+    #pdb.set_trace()
+
     speech_client = speech.Client()
 
     audio_sample = speech_client.sample(
@@ -158,24 +188,65 @@ def transcribe_gcs(gcs_uri, name=""):
         source_uri=gcs_uri,
         encoding='FLAC',
         sample_rate_hertz=8000)
-
+    #pdb.set_trace()
     operation = audio_sample.long_running_recognize('en-US')
 
     retry_count = 100
     while not operation.complete:
         retry_count -= 1
         time.sleep(2)
-        operation.poll()
+        try:
+            operation.poll()
+        except ValueError:
+            "empty segment"
+            # This should give something like "silence"
+            return []
 
     if not operation.complete:
         print('Operation not complete and retry limit reached.')
         return
 
-    alternatives = operation.results
+    return operation.results
+
+
+def transcribe_gcs(gcs_uri, name=""):
+    """Asynchronously transcribes the audio file specified by the gcs_uri."""
+    alternatives = get_google_transcription(gcs_uri)
     words = []
     for i, alternative in enumerate(alternatives):
         words.append({"id":"%s_%d"%(name, i), "text":alternative.transcript, "confidence":alternative.confidence})
     return words
+
+
+def transcribe_slices(uri_list, name=""):
+    """
+    Transcribe a list of uri's that are all part of the same recording
+    :param uri_list: 
+    :param name: 
+    :return: 
+    """
+    transcription = []
+    word_num = 0
+    for i, uri in enumerate(uri_list):
+        progress_bar(i, len(uri_list), text="transcribing uri: ")
+        alternatives = get_google_transcription(uri)
+        file = uri.split("//")[-1]
+        metadata = decode_filename(file)
+        for j, alternative in enumerate(alternatives):
+            word = {"text":alternative.transcript,
+                    "confidence": alternative.confidence}
+            if "channel" in metadata:
+                word["speaker"] = metadata["channel"]
+            if "timestamp" in metadata:
+                word["timestamp"] = metadata["timestamp"]
+            if "name" in metadata:
+                name = metadata["name"]
+            word["id"] = "%s_%d" % (name, word_num),
+            transcription.append(word)
+            word_num += 1
+    return transcription
+
+
 
 def transcribe_microsoft(audio_file, name="", duration=None):
     key = os.environ["BING_SPEECH_KEY"]
@@ -187,6 +258,14 @@ def transcribe_microsoft(audio_file, name="", duration=None):
 
 
 if __name__ == "__main__":
+    GS_LIST = "/Users/Zaaron/Data/audio/ben_noah_5_23_gs.json"
+    TRANSCRIPT_FILE = "/Users/Zaaron/Data/audio/ben_noah_5_23_slice_google_transcription.json"
+    with open(GS_LIST, 'r') as f:
+        gs_list = json.loads(f.read())
+    transcription = transcribe_slices(gs_list)
+    with open(TRANSCRIPT_FILE, 'w') as f:
+        f.write(json.dumps(transcription))
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", default="test")
     parser.add_argument("--transcribe", action="store_true")
@@ -211,7 +290,7 @@ if __name__ == "__main__":
         transcript = transcribe_microsoft(audio_file, name=name)
         with open(transcript_file, 'w') as f:
             f.write(json.dumps(transcript))
-
+    """
 """
 # recognize speech using Sphinx
 try:
