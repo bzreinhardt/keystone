@@ -49,7 +49,7 @@ def upload_folder(root, folder='', bucket_name='illiad-audio'):
         blob = bucket.blob(blob_name)
         with open(os.path.join(root, folder, file), 'rb') as f:
             blob.upload_from_file(f)
-        blob_names.append(blob_name)
+        blob_names.append("gs://%s/%s"%(bucket_name, blob_name))
     return blob_names
 
 
@@ -183,7 +183,8 @@ def run_google(audio_file, duration=None, transcript_file=''):
 def get_google_transcription(gcs_uri):
     """Asynchronously transcribes the audio file specified by the gcs_uri."""
     #pdb.set_trace()
-
+    if gcs_uri[0:5] != 'gs://':
+        gcs_uri = 'gs://' + gcs_uri
     speech_client = speech.Client()
 
     audio_sample = speech_client.sample(
@@ -191,7 +192,6 @@ def get_google_transcription(gcs_uri):
         source_uri=gcs_uri,
         encoding='FLAC',
         sample_rate_hertz=8000)
-    #pdb.set_trace()
     operation = audio_sample.long_running_recognize('en-US')
 
     retry_count = 100
