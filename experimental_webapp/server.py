@@ -206,9 +206,11 @@ def display_audio(audio_key):
         for i, confidence in enumerate(keyword_results['P']):
             keywords[keyword_results['startTime'][i]] = keystone.confidence_to_hex(confidence)
         # need to do some pruning on results
-    lines = keystone.generate_speaker_lines(mem_db['audio'][audio_key][transcript_type])
+    lines = keystone.generate_speaker_lines(keystone.sort_words(mem_db['audio'][audio_key][transcript_type]))
     audio_url = mem_db['audio'][audio_key]['aws_url']
     return render_template('audio_page.html', lines=lines, audio_key=audio_key, audio_url=audio_url, form=form, keywords=keywords)
+
+
 
 
 @app.route('/_audio_search')

@@ -15,7 +15,10 @@ from google.cloud import storage
 from google.cloud import speech
 from utility import progress_bar
 from audio_tools import decode_filename
+import multiprocessing
+import keystone
 import pdb
+import time
 #from credentials import credentials
 
 FILE_NAME = "ES2016a.Mix-Headset"
@@ -216,7 +219,59 @@ def transcribe_gcs(gcs_uri, name=""):
     for i, alternative in enumerate(alternatives):
         words.append({"id":"%s_%d"%(name, i), "text":alternative.transcript, "confidence":alternative.confidence})
     return words
+"""
+def transcription_worker(uri):
+    
+    
+    #:param args: - tuple where args[0] is the gcs uri and args[1] is a queue to write to 
+    #:return: 
+    
+    alternatives = get_google_transcription(uri)
+    file = uri.split("//")[-1]
+    metadata = decode_filename(file)
+    transcript = []
+    for j, alternative in enumerate(alternatives):
+        word = {"text": alternative.transcript,
+                "confidence": alternative.confidence}
+        if "channel" in metadata:
+            word["speaker"] = metadata["channel"]
+        if "timestamp" in metadata:
+            word["starttime"] = metadata["timestamp"]
+        transcript.append(word)
+    return transcript
 
+
+def transcribe_in_parallel(uri_list, name=None):
+
+    operations = []
+
+    for uri in uri_list:
+        speech_client = speech.Client()
+        audio_sample = speech_client.sample(
+            content=None,
+            source_uri=uri,
+            encoding='FLAC',
+            sample_rate_hertz=8000)
+        # pdb.set_trace()
+        operations.append(audio_sample.long_running_recognize('en-US'))
+
+    complete = False
+    while not complete:
+        time.sleep(2)
+        complete = True
+        for operation in operations:
+            try:
+                operation.poll()
+            except ValueError:
+                "empty segment"
+            complete = complete and operation.complete
+
+    results = []
+    for operation in operations:
+        results.append(operation.results)
+
+    return results
+"""
 
 def transcribe_slices(uri_list, name=""):
     """
@@ -238,7 +293,7 @@ def transcribe_slices(uri_list, name=""):
             if "channel" in metadata:
                 word["speaker"] = metadata["channel"]
             if "timestamp" in metadata:
-                word["timestamp"] = metadata["timestamp"]
+                word["starttime"] = metadata["timestamp"]
             if "name" in metadata:
                 name = metadata["name"]
             word["id"] = "%s_%d" % (name, word_num),
@@ -259,12 +314,14 @@ def transcribe_microsoft(audio_file, name="", duration=None):
 
 if __name__ == "__main__":
     GS_LIST = "/Users/Zaaron/Data/audio/ben_noah_5_23_gs.json"
-    TRANSCRIPT_FILE = "/Users/Zaaron/Data/audio/ben_noah_5_23_slice_google_transcription.json"
+    TRANSCRIPT_FILE = "/Users/Zaaron/Data/audio/ben_noah_5_23_slice_google_transcription_parallel.json"
     with open(GS_LIST, 'r') as f:
         gs_list = json.loads(f.read())
-    transcription = transcribe_slices(gs_list)
-    with open(TRANSCRIPT_FILE, 'w') as f:
-        f.write(json.dumps(transcription))
+    #transcription = transcribe_slices(gs_list)
+    transcription = transcribe_in_parallel(GS_LIST[0:4])
+    print(transcription)
+    #with open(TRANSCRIPT_FILE, 'w') as f:
+    #    f.write(json.dumps(transcription))
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", default="test")

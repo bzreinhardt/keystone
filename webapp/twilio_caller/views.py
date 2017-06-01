@@ -14,7 +14,8 @@ from google.cloud import storage
 
 # TODO: https://stackoverflow.com/a/3856947/554487
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
-from keystone_asr import wav_to_flac, transcribe_gcs
+import audio_tools
+from keystone_asr import wav_to_flac, transcribe_gcs, upload_folder, transcribe_slices
 from pprint import pprint
 
 twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
@@ -62,37 +63,36 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
         if r.headers['Content-Type'] != 'audio/x-wav':
             raise Exception('can only handle MIME type audio/x-wav, not {}'.format(r.headers['Content-Type']))
 
-        recording_path = '/Users/noah/tmp/twilio_{}.wav'.format(
+
+        recording_path = '/tmp/twilio_{}.wav'.format(
             self.twilioData['RecordingSid'])
         with open(recording_path, 'wb') as f:
             f.write(r.content)
             print('saved to {}'.format(recording_path))
-        
-        lpath, rpath = wav_to_flac(recording_path)
 
-        print(' left channel saved at ' + lpath)
-        print('right channel saved at ' + rpath)
+        print("slicing file")
+        slice_dir = audio_tools.slice_wav_file(recording_path)
 
+        print("Uploading original file to cloud")
         client = storage.Client()
         bucket = client.get_bucket('illiad-audio')
-        print('uploading left channel...')
-        lbase = path.basename(lpath)
-        lblob = bucket.blob(lbase)
-        with open(lpath, 'rb') as f:
-            lblob.upload_from_file(f)
-        print('done uploading left channel. now uploading right channel...')
-        rbase = path.basename(rpath)
-        rblob = bucket.blob(rbase)
-        with open(rpath, 'rb') as f:
-            rblob.upload_from_file(f)
-        print('done uploading right channel. now transcribing left channel...')
-        lwords = transcribe_gcs('gs://illiad-audio/' + lbase)
-        print('done transcribing left channel. now transcribing right channel...')
-        rwords = transcribe_gcs('gs://illiad-audio/' + rbase)
-        print('---- transcription: right ----')
-        pprint(lwords)
-        print('---- transcription: left ----')
-        pprint(rwords)
+        base = path.basename(recording_path)
+        blob = bucket.blob(base)
+        with open(recording_path, 'rb') as f:
+            blob.upload_from_file(f)
+
+        #TODO: delete original from local filesystem
+        print("done uploading original, now uploading sliced folder")
+        blob_names = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
+        print("done uploading slices, finding transcript")
+        words = transcribe_slices(blob_names, name=self.twilioData['RecordingSid'])
+        print('------ transcription ------')
+        pprint(words)
+        #TODO: delete slices from server
+        print("uploading transcript to gcloud")
+        transcript_blob = bucket.blob("{}_transcript.json".format(self.twilioData['RecordingSid']))
+        transcript_blob.upload_from_string(json.dumps(words))
+        print("done uploading transcript")
 
 @csrf_exempt
 @require_http_methods(["POST"])
