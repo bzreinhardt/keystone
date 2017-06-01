@@ -219,33 +219,12 @@ def transcribe_gcs(gcs_uri, name=""):
     for i, alternative in enumerate(alternatives):
         words.append({"id":"%s_%d"%(name, i), "text":alternative.transcript, "confidence":alternative.confidence})
     return words
-"""
-def transcription_worker(uri):
-    
-    
-    #:param args: - tuple where args[0] is the gcs uri and args[1] is a queue to write to 
-    #:return: 
-    
-    alternatives = get_google_transcription(uri)
-    file = uri.split("//")[-1]
-    metadata = decode_filename(file)
-    transcript = []
-    for j, alternative in enumerate(alternatives):
-        word = {"text": alternative.transcript,
-                "confidence": alternative.confidence}
-        if "channel" in metadata:
-            word["speaker"] = metadata["channel"]
-        if "timestamp" in metadata:
-            word["starttime"] = metadata["timestamp"]
-        transcript.append(word)
-    return transcript
 
 
 def transcribe_in_parallel(uri_list, name=None):
-
     operations = []
-
     for uri in uri_list:
+        #pdb.set_trace()
         speech_client = speech.Client()
         audio_sample = speech_client.sample(
             content=None,
@@ -254,7 +233,6 @@ def transcribe_in_parallel(uri_list, name=None):
             sample_rate_hertz=8000)
         # pdb.set_trace()
         operations.append(audio_sample.long_running_recognize('en-US'))
-
     complete = False
     while not complete:
         time.sleep(2)
@@ -265,13 +243,14 @@ def transcribe_in_parallel(uri_list, name=None):
             except ValueError:
                 "empty segment"
             complete = complete and operation.complete
-
     results = []
     for operation in operations:
         results.append(operation.results)
+    for result in results:
+        for j, alternative in enumerate(result):
 
     return results
-"""
+
 
 def transcribe_slices(uri_list, name=""):
     """
@@ -317,8 +296,15 @@ if __name__ == "__main__":
     TRANSCRIPT_FILE = "/Users/Zaaron/Data/audio/ben_noah_5_23_slice_google_transcription_parallel.json"
     with open(GS_LIST, 'r') as f:
         gs_list = json.loads(f.read())
-    #transcription = transcribe_slices(gs_list)
-    transcription = transcribe_in_parallel(GS_LIST[0:4])
+    start = time.time()
+    transcription = transcribe_slices(gs_list[0:4])
+    stop = time.time()
+
+    print("serial took %f seconds" % (stop-start))
+    start = time.time()
+    transcription = transcribe_in_parallel(gs_list[0:4])
+    stop = time.time()
+    print("parallel took took %f seconds" % (stop-start))
     print(transcription)
     #with open(TRANSCRIPT_FILE, 'w') as f:
     #    f.write(json.dumps(transcription))
