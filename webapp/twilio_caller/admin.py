@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import Call
+from .models import TwilioCall
 
-admin.site.register(Call)
+admin.site.register(TwilioCall)
