@@ -83,7 +83,7 @@ p {
     text-shadow: 0 -1px 1px #4f924f;
 }
 
-.call-btn:hover {
+.call-btn:hover, .call-btn:focus {
     background: radial-gradient(ellipse at center, #3bcb40 0%,#26bb26 100%);
 }
 
