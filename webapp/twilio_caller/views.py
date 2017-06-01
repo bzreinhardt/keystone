@@ -25,12 +25,19 @@ def index(request):
 
 @require_http_methods(["POST"])
 def call(request):
-    orig, dest = request.POST['orig'], request.POST['dest']
+    caller_name = request.POST['caller-name']
+    caller_number = request.POST['caller-number']
+    recipient_name = request.POST['recipient-name']
+    recipient_number = request.POST['recipient-number']
     twilio.api.account.calls.create(
-        to=orig, from_='+16197276734', # this is our Twilio phone number
+        to=recipient_number, # call recipient first
+        from_='+16197276734', # this is our Twilio phone number
         url='http://{}{}'.format(request.META['HTTP_HOST'],
-                                 reverse('connect_endpoint', args=[dest])))
-    return HttpResponse('Making call to {} now...'.format(dest))
+                                 reverse('connect_endpoint',
+                                         # TODO pass along caller name
+                                         args=[caller_number])))
+    return HttpResponse('Making call to {} at {} now...'.format(
+            recipient_name, recipient_number))
 
 @csrf_exempt
 @require_http_methods(["POST"])

@@ -1,10 +1,58 @@
+{% load static %}
 <html>
+
+<head>
+  <title>Memotoken | Notes on calls for you</title>
+  <link rel="stylesheet" href="{% static '/twilio_caller/style.css' %}" />
+</head>
+
 <body>
-  <form method="POST" action="{% url 'call' %}">
-    Your number: <input name="orig" type="text" value="+18587406507"><br>
-    Their number: <input name="dest" type="text" value="+17752668469"><br>
-    {% csrf_token %}
-    <input type="submit" value="Call">
-  </form>
+  <h1>
+    <div class="container name">Memotoken</div>
+    <div class="container">We'll take the notes on your next call.</div>
+  </h1>
+  <div class="container">
+    <p>Use the form below to place a call, and afterwards, you and your
+      correspondant will both receive an email with notes on your
+      conversation, including a summary of key points, deadlines, and
+      action items you&nbsp;discussed.</p>
+    
+    <form method="POST" action="{% url 'call' %}">
+      <div class="dialer-form">
+        <div class="caller">
+          <h2>You are...</h2>
+          <div>
+            <label for="caller-name">Your name</label>
+            <div><input name="caller-name" type="text"></div>
+          </div>
+          <div>
+            <label for="caller-email">Your email</label>
+            <div><input name="caller-email" type="text"></div>
+          </div>
+          <div>
+            <label for="caller-number">Your number</label>
+            <div><input name="caller-number" type="text"></div>
+          </div>
+        </div>
+        <div class="recipient">
+          <h2>You're calling...</h2>
+          <div>
+            <label for="recipient-name">Their name</label>
+            <div><input name="recipient-name" type="text"></div>
+          </div>
+          <div>
+            <label for="recipient-email">Their email</label>
+            <div><input name="recipient-email" type="text"></div>
+          </div>
+          <div>
+            <label for="recipient-number">Their number</label>
+            <div><input name="recipient-number" type="text"></div>
+          </div>
+        </div>
+      </div>
+      {% csrf_token %}
+      <input class="call-btn" type="submit" value="Call">
+    </form>
+  </div>
 </body>
 </html>
