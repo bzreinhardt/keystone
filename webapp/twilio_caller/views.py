@@ -18,9 +18,15 @@ sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 import audio_tools
 from keystone_asr import wav_to_flac, transcribe_gcs, upload_folder, transcribe_slices, transcribe_in_parallel
 from pprint import pprint
+from keyword_search import index_audio_url
 
 twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
                 environ.get('TWILIO_AUTH_TOKEN'))
+
+DO_TRANSCRIPTS = True
+DO_INDEXING = True
+HACK_DB = "%s/experimental_webapp/db.json" % environ.get('KEYSTONE')
+
 
 def index(request):
     return render(request, 'twilio_caller/callform.html')
@@ -79,21 +85,44 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
         bucket = client.get_bucket('illiad-audio')
         base = path.basename(recording_path)
         blob = bucket.blob(base)
+        key = base.split('.')[0]
         with open(recording_path, 'rb') as f:
             blob.upload_from_file(f)
+        #TODO: need to figure out secure way of actually doing this
+        blob.make_public()
+        db = None
+        if HACK_DB:
+            with open(HACK_DB, 'r') as f:
+                db = json.loads(f.read())
+                db['audio'][key] = {}
+        url = blob.public_url
+        db['audio'][key]['aws_url'] = url
+        if DO_INDEXING:
+            print("Indexing file")
+            deepgram_id = index_audio_url(url)
+            if db:
+                db['audio'][key]['deepgram_id'] = deepgram_id
+                print("Deepgram ID saved")
+        if DO_TRANSCRIPTS:
+            #TODO: delete original from local filesystem
+            print("done uploading original, now uploading sliced folder")
+            blob_names = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
+            print("done uploading slices, finding transcript")
+            words = transcribe_in_parallel(blob_names, name=self.twilioData['RecordingSid'])
+            print('------ transcription ------')
+            pprint(words)
+            #TODO: delete slices from server
+            print("uploading transcript to gcloud")
+            transcript_blob = bucket.blob("{}_transcript.json".format(self.twilioData['RecordingSid']))
+            transcript_blob.upload_from_string(json.dumps(words))
+            print("done uploading transcript")
+            if db:
+                db['audio'][key]['transcript'] = words
+                print("saved transcript")
+        if db:
+            with open(HACK_DB, 'w') as f:
+                f.write(json.dumps(db))
 
-        #TODO: delete original from local filesystem
-        print("done uploading original, now uploading sliced folder")
-        blob_names = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
-        print("done uploading slices, finding transcript")
-        words = transcribe_in_parallel(blob_names, name=self.twilioData['RecordingSid'])
-        print('------ transcription ------')
-        pprint(words)
-        #TODO: delete slices from server
-        print("uploading transcript to gcloud")
-        transcript_blob = bucket.blob("{}_transcript.json".format(self.twilioData['RecordingSid']))
-        transcript_blob.upload_from_string(json.dumps(words))
-        print("done uploading transcript")
 
 @csrf_exempt
 @require_http_methods(["POST"])
