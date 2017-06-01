@@ -16,7 +16,7 @@ from google.cloud import storage
 # TODO: https://stackoverflow.com/a/3856947/554487
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
 import audio_tools
-from keystone_asr import wav_to_flac, transcribe_gcs, upload_folder, transcribe_slices
+from keystone_asr import wav_to_flac, transcribe_gcs, upload_folder, transcribe_slices, transcribe_in_parallel
 from pprint import pprint
 
 twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
@@ -86,7 +86,7 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
         print("done uploading original, now uploading sliced folder")
         blob_names = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
         print("done uploading slices, finding transcript")
-        words = transcribe_slices(blob_names, name=self.twilioData['RecordingSid'])
+        words = transcribe_in_parallel(blob_names, name=self.twilioData['RecordingSid'])
         print('------ transcription ------')
         pprint(words)
         #TODO: delete slices from server
