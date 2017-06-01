@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.utils import timezone
 from django.http import HttpResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,6 +13,8 @@ import json
 import requests
 
 from google.cloud import storage
+
+from twilio_caller.models import TwilioCall
 
 # TODO: https://stackoverflow.com/a/3856947/554487
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
@@ -27,18 +30,30 @@ def index(request):
 
 @require_http_methods(["POST"])
 def call(request):
-    orig, dest = request.POST['orig'], request.POST['dest']
+    call = TwilioCall.objects.create(
+        caller_name=request.POST['caller-name'],
+        caller_email=request.POST['caller-email'],
+        caller_number=request.POST['caller-number'],
+        recipient_name=request.POST['recipient-name'],
+        recipient_email=request.POST['recipient-email'],
+        recipient_number=request.POST['recipient-number'])
+    call.save()
+
     twilio.api.account.calls.create(
-        to=orig, from_='+16197276734', # this is our Twilio phone number
+        to=call.recipient_number, # call recipient first
+        from_='+16197276734', # this is our Twilio phone number
         url='http://{}{}'.format(request.META['HTTP_HOST'],
-                                 reverse('connect_endpoint', args=[dest])))
-    return HttpResponse('Making call to {} now...'.format(dest))
+                                 reverse('connect_endpoint', args=[call.id])))
+    return redirect(reverse('call_status', args=[call.id]))
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def connect(request, number_to_connect):
-    return render(request, 'twilio_caller/call.xml',
-                  { 'number_to_connect': number_to_connect })
+def connect(request, call_id):
+    call = TwilioCall.objects.get(id=call_id)
+    if call is None:
+        return HttpResponseNotFound('error: call not found.')
+    call.begin_call()
+    return render(request, 'twilio_caller/call.xml', { 'call': call })
 
 class ProcessRecordingAfterHttpResponse(HttpResponse):
     '''Send HttpResponse and then download & process Twilio call.
@@ -97,8 +112,18 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def record_callback(request):
-    print('---- received record callback ----')
+def record_callback(request, call_id):
+    print('---- received record callback for call #{} ----'.format(call_id))
     pprint(request.POST)
+    call = TwilioCall.objects.get(id=call_id)
+    if call is None:
+        return HttpResponseNotFound('error: call not found.')
+    call.end_call(request.POST)
     return ProcessRecordingAfterHttpResponse(twilioData=request.POST,
                                              content='success') # 200 for Twilio
+
+def status(request, call_id):
+    call = TwilioCall.objects.get(id=call_id)
+    if call is None:
+        return HttpResponseNotFound('error: call not found.')
+    return render(request, 'twilio_caller/status.html', { 'call': call })
