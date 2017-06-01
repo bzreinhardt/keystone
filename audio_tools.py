@@ -127,7 +127,7 @@ def slice_wav_file(wav_file):
             outfile = encode_filename(name, channel=i, timestamp=time_in_sec, extension="flac")
             progress_bar(j, len(channel), "writing flac file: ")
             sf.write(os.path.join(flac_dir, outfile), slice, rate)
-    return directory
+    return flac_dir
 
 
 if __name__=="__main__":

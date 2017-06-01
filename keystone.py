@@ -52,6 +52,7 @@ def generate_speaker_lines(words):
     lines = []
     previous_speaker = -1
     current_line = {"words":[]}
+    #pdb.set_trace()
     for word in words:
         if 'confidence' not in word:
             word['confidence'] = 1.0
@@ -180,6 +181,14 @@ def load_words(path):
         word['starttime'] = word['@starttime']
         word['endtime'] = word['@endtime']
     return words
+
+def sort_words(transcript):
+    """
+    Sorts a transcript by timestamp
+    :param transcript: 
+    :return: 
+    """
+    return sorted(transcript, key=lambda k: k['timestamp'])
 
 
 def test_transcript_creation():
