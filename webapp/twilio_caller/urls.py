@@ -9,4 +9,5 @@ urlpatterns = [
         name='record_callback'),
     url(r'^connect/([0-9]+)$', views.connect, name='connect_endpoint'),
     url(r'^status/([0-9]+)$', views.status, name='call_status'),
+    url(r'^viewer/([1-z]+)/$', views.viewer, name='render_viewer'),
 ]

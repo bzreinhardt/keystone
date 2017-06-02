@@ -1,0 +1,42 @@
+{% extends "twilio_caller/header.html" %} {% block body %}<body>
+<script type="text/javascript"> var audio_key = "{{audio_key}}" </script>
+<audio id="master_audio" preload="auto" src = {{audio_url}}> 
+    <p> Your browser does not support the audio element </p> 
+</audio>
+<br>
+<h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
+Keyword Search:
+
+ <form id="keyword" action="" method="post" onsubmit="keywordSubmit();"> {{ csrf_input }}
+            {{ form.csrf }}
+
+            <div class="input text">
+                {{ form.name.label }} {{ form.name }}
+            </div>
+
+            <input type="hidden" name="audio_key" id="form_audio_key" value="{{audio_key}}"/>
+
+            <div class="input submit">
+                <input type="submit" value="Submit" />
+            </div>
+</form>
+{% if keywords|length > 0 %}
+    Keyword Times
+
+    {% for keyword in keywords %}
+        <a onClick="setTime({{keyword}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{keyword.hex_confidence}}"> {{keyword}} </a>
+    {% endfor %}
+{% endif %}
+<br>
+{% for line in lines %}
+Speaker {{line.speaker}} :
+{%for word in line.words %}
+<a rel="popover" id=word_{{word.id}} onClick="setTime({{word.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{word.hex_confidence}}"> {{word.text}} </a>
+{% endfor %}
+<br>
+{% endfor %}
+  </body>
+{% load static from staticfiles %}
+<script src="{% static '/js/mindstone_ui.js' %}"></script>
+</html>
+{% endblock %}

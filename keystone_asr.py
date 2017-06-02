@@ -258,6 +258,7 @@ def transcribe_in_parallel(uri_list, name=None):
         results.append(operation.results)
     for result in results:
         for j, alternative in enumerate(result):
+            foo = 0
 
     return results
 

@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from twilio.rest import Client as Twilio
+from django import forms
 from os import environ
 from os import path
 import sys
@@ -21,7 +22,8 @@ sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 import audio_tools
 from keystone_asr import wav_to_flac, transcribe_gcs, upload_folder, transcribe_slices, transcribe_in_parallel
 from pprint import pprint
-from keyword_search import index_audio_url
+from keyword_search import index_audio_url, audio_search
+from keystone import generate_speaker_lines, sort_words, confidence_to_hex
 
 twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
                 environ.get('TWILIO_AUTH_TOKEN'))
@@ -29,7 +31,12 @@ twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
 DO_TRANSCRIPTS = True
 DO_INDEXING = True
 HACK_DB = "%s/experimental_webapp/db.json" % environ.get('KEYSTONE')
+if HACK_DB:
+    with open(HACK_DB, 'r') as f:
+        mem_db = json.loads(f.read())
 
+class ReusableForm(forms.Form):
+    name = forms.CharField(label='Name:', max_length=100)
 
 def index(request):
     return render(request, 'twilio_caller/callform.html')
@@ -156,3 +163,23 @@ def status(request, call_id):
     if call is None:
         return HttpResponseNotFound('error: call not found.')
     return render(request, 'twilio_caller/status.html', { 'call': call })
+
+
+def viewer(request, key):
+    keywords = {}
+    form = ReusableForm()
+    transcript_type = request.GET.get('transcript_type','transcript')
+    if request.method == 'POST':
+        keyword = request.form['name']
+        content_id = mem_db['audio'][key]['deepgram_id']
+        keyword_results = json.loads(audio_search(content_id, keyword))
+
+        for i, confidence in enumerate(keyword_results['P']):
+            keywords[keyword_results['startTime'][i]] = confidence_to_hex(confidence)
+            # need to do some pruning on results
+    lines = generate_speaker_lines(sort_words(mem_db['audio'][key][transcript_type]))
+    audio_url = mem_db['audio'][key]['aws_url']
+    return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url, "form":form,
+                           "keywords":keywords})
+
+
