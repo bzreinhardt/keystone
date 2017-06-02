@@ -208,8 +208,8 @@ function getSelectedElementTags() {
 						processComment(comment)
 						comments.push(comment);
 				}
-				
-				clearSelection();
+				if (elmlist.length > 0) { clearSelection();}
+
 				return elmlist;
 		}
 }

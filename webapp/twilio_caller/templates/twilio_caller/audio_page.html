@@ -7,11 +7,11 @@
 <h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
 Keyword Search:
 
- <form id="keyword" action="" method="post" onsubmit="keywordSubmit();"> {{ csrf_input }}
-            {{ form.csrf }}
+ <form id="keyword" action="" method="POST" onsubmit="keywordSubmit();">
 
             <div class="input text">
-                {{ form.name.label }} {{ form.name }}
+                <label for="search-term">Search Term</label>
+                <input name="search-term" type="text" style="z-index: 2;">
             </div>
 
             <input type="hidden" name="audio_key" id="form_audio_key" value="{{audio_key}}"/>
@@ -19,6 +19,7 @@ Keyword Search:
             <div class="input submit">
                 <input type="submit" value="Submit" />
             </div>
+     {% csrf_token %}
 </form>
 {% if keywords|length > 0 %}
     Keyword Times

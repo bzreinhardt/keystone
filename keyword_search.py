@@ -77,11 +77,14 @@ def audio_search(content_id, query):
     """
     data = {"action": "object_search", "userID": DEEPGRAM_KEY, "contentID": content_id,
             "query": query, "snippet": True, "filter": {"Nmax": 10, "Pmin": 0.55}, "sort": "time"}
+
     status = requests.post(DEEPGRAM_URL, headers=headers, data=json.dumps(data))
+    pdb.set_trace()
     # will return error if it's not indexed yet
-    if "error" not in status.text:
-        status.text["error"] = None
-    return status.text
+    out = json.loads(status.text)
+    if "error" not in out:
+        out["error"] = None
+    return out
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()

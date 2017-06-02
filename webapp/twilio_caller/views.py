@@ -167,19 +167,21 @@ def status(request, call_id):
 
 def viewer(request, key):
     keywords = {}
-    form = ReusableForm()
     transcript_type = request.GET.get('transcript_type','transcript')
-    if request.method == 'POST':
-        keyword = request.form['name']
-        content_id = mem_db['audio'][key]['deepgram_id']
-        keyword_results = json.loads(audio_search(content_id, keyword))
-
+    content_id = mem_db['audio'][key]['deepgram_id']
+    if request.method == "POST":
+        import pdb
+        #pdb.set_trace()
+        keyword = request.POST['search-term'][0]
+        keyword_results = audio_search(content_id, keyword)
+        print("got keyword results")
+        print(keyword_results)
         for i, confidence in enumerate(keyword_results['P']):
             keywords[keyword_results['startTime'][i]] = confidence_to_hex(confidence)
-            # need to do some pruning on results
     lines = generate_speaker_lines(sort_words(mem_db['audio'][key][transcript_type]))
     audio_url = mem_db['audio'][key]['aws_url']
-    return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url, "form":form,
+    print("rendering with keywords")
+    print("keywords")
+    return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
                            "keywords":keywords})
-
 
