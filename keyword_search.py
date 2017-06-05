@@ -53,6 +53,7 @@ def index_audio_url(url):
     """
     data = {"action": "index_content", "userID": DEEPGRAM_KEY, "data_url": url}
     out = requests.post(DEEPGRAM_URL, headers=headers, data=json.dumps(data))
+    pdb.set_trace()
     return json.loads(out.text)['contentID']
 
 
@@ -79,7 +80,6 @@ def audio_search(content_id, query):
             "query": query, "snippet": True, "filter": {"Nmax": 10, "Pmin": 0.55}, "sort": "time"}
 
     status = requests.post(DEEPGRAM_URL, headers=headers, data=json.dumps(data))
-    pdb.set_trace()
     # will return error if it's not indexed yet
     out = json.loads(status.text)
     if "error" not in out:
@@ -116,13 +116,16 @@ if __name__=="__main__":
         deepgram_id = db['audio'][KEY]['deepgram_id']
         print(get_indexing_status(deepgram_id))
     if args.search:
+
         deepgram_id = db['audio'][KEY]['deepgram_id']
+        print("deepgram ID:")
+        print(deepgram_id)
         print(audio_search(deepgram_id, args.search))
     if args.full_stack:
         pdb.set_trace()
         deepgram_id = index_audio_url(URL)
         db['audio'][KEY2] = dict()
-        db['audio'][KEY]['deepgram_id'] = deepgram_id
+        db['audio'][KEY2]['deepgram_id'] = deepgram_id
         with open(DB_FILE, 'w') as f:
             f.write(json.dumps(db))
         print(audio_search(deepgram_id, "test"))

@@ -129,6 +129,24 @@ def slice_wav_file(wav_file):
             sf.write(os.path.join(flac_dir, outfile), slice, rate)
     return flac_dir
 
+def cut_file(file, length_sec=10, out_file=None, split=False):
+    rate, data = wavfile.read(file)
+    out = data[0:int(length_sec*rate), :]
+    if split:
+        for channel in range(0, out.shape[1]):
+
+            out_split = out[:, channel]
+            out_file = (os.path.basename(file)).split(".")[0] + "_%d_sec_channel_%d.wav"%(length_sec, channel)
+            out_file = os.path.join(os.path.dirname(file), out_file)
+            sf.write(out_file, out_split, rate)
+    else:
+        if not out_file:
+            out_file = (os.path.basename(file)).split(".")[0] + "_%d_sec_channel_%d.wav" % (length_sec, channel)
+            out_file = os.path.join(os.path.dirname(file), out_file)
+        sf.write(out_file, out, rate)
+
+
+
 
 if __name__=="__main__":
-    slice_wav_file(PATH)
+    cut_file(PATH, length_sec=1500, split=True)

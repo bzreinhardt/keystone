@@ -172,16 +172,22 @@ def viewer(request, key):
     if request.method == "POST":
         import pdb
         #pdb.set_trace()
-        keyword = request.POST['search-term'][0]
+        keyword = request.POST['search-term']
+        print("searching for %s"%keyword)
         keyword_results = audio_search(content_id, keyword)
         print("got keyword results")
         print(keyword_results)
+        print("deepgram ID:")
+        print(content_id)
+
         for i, confidence in enumerate(keyword_results['P']):
-            keywords[keyword_results['startTime'][i]] = confidence_to_hex(confidence)
+            keywords[str(i)] = {}
+            keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
+            keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
     lines = generate_speaker_lines(sort_words(mem_db['audio'][key][transcript_type]))
     audio_url = mem_db['audio'][key]['aws_url']
     print("rendering with keywords")
-    print("keywords")
+    print(keywords)
     return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
                            "keywords":keywords})
 

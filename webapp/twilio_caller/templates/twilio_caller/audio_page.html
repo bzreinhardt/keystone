@@ -24,8 +24,8 @@ Keyword Search:
 {% if keywords|length > 0 %}
     Keyword Times
 
-    {% for keyword in keywords %}
-        <a onClick="setTime({{keyword}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{keyword.hex_confidence}}"> {{keyword}} </a>
+    {% for key, keyword in keywords.items %}
+        <a onClick="setTime({{keyword.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{keyword.hex_confidence}}"> {{keyword.starttime}} </a>
     {% endfor %}
 {% endif %}
 <br>
