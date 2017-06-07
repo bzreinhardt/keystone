@@ -57,24 +57,87 @@ def index_audio_url(url):
 
 
 def get_indexing_status(content_id):
+    # Statuses:
+    # "fetch"
+    # "awaiting_gen_lattice"
+    # "done"
     data = {"action": "get_object_status", "userID": DEEPGRAM_KEY, "contentID": content_id}
     status = requests.post(DEEPGRAM_URL, headers=headers, data=json.dumps(data))
     return status.text
 
 
+
+
 def audio_search(content_id, query):
+    """
+    
+    :param content_id: deepgram id string
+    :param query: string to search for
+    :return: dictionary of lists - {"snippet", "P", "endTime", "startTime", "N", "error")
+    """
     data = {"action": "object_search", "userID": DEEPGRAM_KEY, "contentID": content_id,
             "query": query, "snippet": True, "filter": {"Nmax": 10, "Pmin": 0.55}, "sort": "time"}
+
     status = requests.post(DEEPGRAM_URL, headers=headers, data=json.dumps(data))
-    return status.text
+    # will return error if it's not indexed yet
+    out = json.loads(status.text)
+    if "error" not in out:
+        out["error"] = None
+    return out
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("query")
+    parser.add_argument("--key")
+    parser.add_argument("--upload", action="store_true")
+    parser.add_argument("--status", action="store_true")
+    parser.add_argument("--search")
+    parser.add_argument("--full_stack", action="store_true")
     args = parser.parse_args()
+    DB_FILE = "%s/experimental_webapp/db.json" % os.environ["KEYSTONE"]
+    KEY = "ben_noah_5_23"
+    URL = "https://storage.googleapis.com/illiad-audio/twilio_REf4c874b065c4e2491825e63d571de3dc.wav"
+    KEY2 = "twilio_REf4c874b065c4e2491825e63d571de3dc"
+    with open(DB_FILE, 'r') as f:
+        db = json.loads(f.read())
+    if not args.key:
+        key = KEY
+    else:
+        key = args.key
+    if args.upload:
+        url = db['audio'][KEY]['aws_url']
+        print("Indexing audio from %s" % url)
+        deepgram_id = index_audio_url(url)
+        db['audio'][KEY]['deepgram_id'] = deepgram_id
+        with open(DB_FILE, 'w') as f:
+            f.write(json.dumps(db))
+        print(get_indexing_status(deepgram_id))
+    if args.status:
+        deepgram_id = db['audio'][KEY]['deepgram_id']
+        print(get_indexing_status(deepgram_id))
+    if args.search:
+
+        deepgram_id = db['audio'][KEY]['deepgram_id']
+        print("deepgram ID:")
+        print(deepgram_id)
+        print(audio_search(deepgram_id, args.search))
+    if args.full_stack:
+        pdb.set_trace()
+        deepgram_id = index_audio_url(URL)
+        db['audio'][KEY2] = dict()
+        db['audio'][KEY2]['deepgram_id'] = deepgram_id
+        with open(DB_FILE, 'w') as f:
+            f.write(json.dumps(db))
+        print(audio_search(deepgram_id, "test"))
+        #while get_indexing_status(deepgram_id) != "done":
+        #    sys.stdout.write("Waiting for index to ")
+
+
+    """
+    
     # This is the id for the ES2016a.Mix-Headset.wav file
     content_id = "1494481681-043d1a1b-f8c4-41ba-b82a-7dc7c4aa8368-4391418214"
     query = args.query
     search_results = audio_search(content_id, query)
     print(search_results)
+    """
 

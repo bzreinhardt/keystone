@@ -193,10 +193,6 @@ def load_audio():
 @app.route('/audio/<audio_key>', methods=['GET', 'POST'])
 def display_audio(audio_key):
     form = ReusableForm(request.form)
-    if 'transcript_type' in request.args:
-        transcript_type = request.args.get('transcript_type')
-    else:
-        transcript_type = 'transcript'
     keywords = {}
     if request.method == 'POST':
         keyword = request.form['name']

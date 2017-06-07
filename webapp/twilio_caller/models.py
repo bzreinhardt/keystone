@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 
 class TwilioCall(models.Model):
     caller_name = models.TextField()
@@ -15,6 +16,10 @@ class TwilioCall(models.Model):
     twilio_sid = models.TextField(blank=True, null=True)
     twilio_recording_sid = models.TextField(blank=True, null=True)
     twilio_recording_url = models.TextField(blank=True, null=True)
+
+    recording_url = models.TextField(blank=True, null=True)
+    audio_index_id = models.TextField(blank=True, null=True)
+    transcript = models.TextField(blank=True, null=True)
 
     CALL_STATES = (
         ('NI', 'Not Initiated'),
@@ -40,7 +45,8 @@ class TwilioCall(models.Model):
         self.save()
 
     def end_call(self, twilio_data):
-        assert self.state == self.CALL_IN_PROGRESS
+        if not settings.DEBUG:
+            assert self.state == self.CALL_IN_PROGRESS
         self.call_end = timezone.now()
         self.state = self.CALL_FINISHED
         self.twilio_sid = twilio_data['CallSid']

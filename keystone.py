@@ -52,18 +52,25 @@ def generate_speaker_lines(words):
     lines = []
     previous_speaker = -1
     current_line = {"words":[]}
-    #pdb.set_trace()
     for word in words:
         if 'confidence' not in word:
             word['confidence'] = 1.0
         word['hex_confidence'] = confidence_to_hex(word['confidence'])
-        if previous_speaker is not word['speaker']:
+        if previous_speaker != word['speaker'] and previous_speaker is not -1:
             current_line['speaker'] = previous_speaker
             lines.append(current_line)
             current_line = {"words":[]}
         current_line['words'].append(word)
         previous_speaker = word['speaker']
     return lines
+
+
+def add_speakers(transcript, speakers=['Speaker 0', 'Speaker 1', 'Speaker 2']):
+    for word in transcript:
+        if type(word['speaker']) == int:
+            word['speaker'] = speakers[word['speaker']]
+    return transcript
+
 
 def compile_transcript(speaker_data):
     ### Compiles a transcript from a bunch of different speakers
@@ -184,11 +191,11 @@ def load_words(path):
 
 def sort_words(transcript):
     """
-    Sorts a transcript by timestamp
+    Sorts a transcript by starttime
     :param transcript: 
     :return: 
     """
-    return sorted(transcript, key=lambda k: k['timestamp'])
+    return sorted(transcript, key=lambda k: k['starttime'])
 
 
 def test_transcript_creation():

@@ -22,7 +22,7 @@ def encode_filename(name, channel=None, timestamp=None, extension="flac"):
     if channel is not None:
         out = out +"_channel_%d" % channel
     # Note that this means that we're only encoding timestamps to 100th of a second
-    if timestamp:
+    if timestamp == 0 or timestamp is not None:
         out = out + "_timestamp_%d" % int(timestamp * ENCODING_MULT_FACTOR)
     out = out + ".%s" % extension
     return out
@@ -32,7 +32,6 @@ def decode_filename(filepath):
     info["extension"] = os.path.basename(filepath).split(".")[-1]
     pieces = os.path.basename(filepath).split(".")[0].split("_")
     name = ""
-    #pdb.set_trace()
     for i, piece in enumerate(pieces):
         if piece != "channel" and not "channel" in info:
             if i is 0:
@@ -91,21 +90,26 @@ def find_divisions(audio, silence_sec, rate, threshold=50):
     silence is the min amount of silence
     """
     silence = int(rate * silence_sec)
-    #pdb.set_trace()
     all_midpoints = []
+    all_startpoints = []
     for channel in range(0, audio.shape[1]):
         silent_regions = contiguous_regions(audio[:, channel] < threshold)
-        long_enough = (silent_regions[:,1] - silent_regions[:,0] > silence)
+        long_enough = ((silent_regions[:,1] - silent_regions[:,0]) > silence)
         # this is going to be an nx2 array of the long silent regions
         long_regions = silent_regions[long_enough, :]
-        #pdb.set_trace()
-        midpoints = list(find_unique_midpoints(((long_regions[:,1]-long_regions[:,0])/2 + long_regions[:,0]).astype("int32")))
+        midpoints = list(find_unique_midpoints(((long_regions[:, 1]-long_regions[:, 0])/2 + long_regions[:, 0]).astype("int32")))
+        startpoints = []
+        for pair in zip([0] + midpoints, midpoints + [audio.shape[0]]):
+            audio_start = np.argmax(audio[:, channel][pair[0]:pair[1]] > threshold) + pair[0]
+            startpoints.append(audio_start)
         all_midpoints.append(midpoints)
-    return all_midpoints
+        all_startpoints.append(startpoints)
+    return all_midpoints, all_startpoints
 
 def slice_wav_file(wav_file):
+
     rate, data = wavfile.read(wav_file)
-    all_midpoints = find_divisions(data, SILENCE, rate)
+    all_midpoints, all_startpoints = find_divisions(data, SILENCE, rate)
     print("Number of found midpoints is \n"
           "channel1: %d \n"
           "channel2: %d \n" % (len(all_midpoints[0]), len(all_midpoints[1])))
@@ -115,19 +119,32 @@ def slice_wav_file(wav_file):
     if not os.path.isdir(flac_dir):
         os.mkdir(flac_dir)
     for i, channel in enumerate(all_midpoints):
-        for j, midpoint in enumerate(channel):
-            if j is 0:
-                slice = data[0: midpoint, i]
-            elif j is len(channel) - 1:
-                slice = data[midpoint:-1, i]
-            else:
-                slice = data[channel[j - 1]:midpoint, i]
-            # pdb.set_trace()
-            time_in_sec = float(midpoint) / float(rate)
+        for j, pair in enumerate(zip([0] + channel, channel + [data.shape[0]])):
+            slice = data[pair[0]:pair[1], i]
+            startpoint = all_startpoints[i][j]
+            time_in_sec = float(startpoint) / float(rate)
             outfile = encode_filename(name, channel=i, timestamp=time_in_sec, extension="flac")
             progress_bar(j, len(channel), "writing flac file: ")
             sf.write(os.path.join(flac_dir, outfile), slice, rate)
     return flac_dir
+
+def cut_file(file, length_sec=10, out_file=None, split=False):
+    rate, data = wavfile.read(file)
+    out = data[0:int(length_sec*rate), :]
+    if split:
+        for channel in range(0, out.shape[1]):
+
+            out_split = out[:, channel]
+            out_file = (os.path.basename(file)).split(".")[0] + "_%d_sec_channel_%d.wav"%(length_sec, channel)
+            out_file = os.path.join(os.path.dirname(file), out_file)
+            sf.write(out_file, out_split, rate)
+    else:
+        if not out_file:
+            out_file = (os.path.basename(file)).split(".")[0] + "_%d_sec_channel_%d.wav" % (length_sec, channel)
+            out_file = os.path.join(os.path.dirname(file), out_file)
+        sf.write(out_file, out, rate)
+
+
 
 
 if __name__=="__main__":

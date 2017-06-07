@@ -4,7 +4,9 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.conf import settings
 from twilio.rest import Client as Twilio
+from django import forms
 from os import environ
 from os import path
 import sys
@@ -21,9 +23,18 @@ sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 import audio_tools
 from keystone_asr import wav_to_flac, transcribe_gcs, upload_folder, transcribe_slices, transcribe_in_parallel
 from pprint import pprint
+from keyword_search import index_audio_url, audio_search
+from keystone import generate_speaker_lines, sort_words, confidence_to_hex, add_speakers
 
 twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
                 environ.get('TWILIO_AUTH_TOKEN'))
+
+UPLOAD_ORIGINAL = True
+DO_TRANSCRIPTS = True
+DO_INDEXING = True
+
+class ReusableForm(forms.Form):
+    name = forms.CharField(label='Name:', max_length=100)
 
 def index(request):
     return render(request, 'twilio_caller/callform.html')
@@ -86,29 +97,51 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
             f.write(r.content)
             print('saved to {}'.format(recording_path))
 
-        print("slicing file")
-        slice_dir = audio_tools.slice_wav_file(recording_path)
+        base = path.basename(recording_path)
+        key = self.twilioData['RecordingSid']
+        call = TwilioCall.objects.get(twilio_recording_sid=key)
 
-        print("Uploading original file to cloud")
         client = storage.Client()
         bucket = client.get_bucket('illiad-audio')
-        base = path.basename(recording_path)
-        blob = bucket.blob(base)
-        with open(recording_path, 'rb') as f:
-            blob.upload_from_file(f)
 
-        #TODO: delete original from local filesystem
-        print("done uploading original, now uploading sliced folder")
-        blob_names = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
-        print("done uploading slices, finding transcript")
-        words = transcribe_in_parallel(blob_names, name=self.twilioData['RecordingSid'])
-        print('------ transcription ------')
-        pprint(words)
-        #TODO: delete slices from server
-        print("uploading transcript to gcloud")
-        transcript_blob = bucket.blob("{}_transcript.json".format(self.twilioData['RecordingSid']))
-        transcript_blob.upload_from_string(json.dumps(words))
-        print("done uploading transcript")
+        if UPLOAD_ORIGINAL:
+            print("Uploading original file to cloud")
+            blob = bucket.blob(base)
+            with open(recording_path, 'rb') as f:
+                blob.upload_from_file(f)
+            #TODO: need to figure out secure way of actually doing this
+            blob.make_public()
+            url = blob.public_url
+            call.recording_url = url
+            call.save()
+
+        if DO_INDEXING:
+            print("Indexing file")
+            deepgram_id = index_audio_url(url)
+            call.audio_index_id = deepgram_id
+            call.save()
+
+        if DO_TRANSCRIPTS:
+            #TODO: delete original from local filesystem
+            print("slicing file")
+            slice_dir = audio_tools.slice_wav_file(recording_path)
+            print("uploading sliced folder")
+            blob_names = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
+            print("done uploading slices, finding transcript")
+            words = transcribe_in_parallel(blob_names, name=self.twilioData['RecordingSid'])
+            print('------ transcription ------')
+            pprint(words)
+            #TODO: delete slices from server
+            print("uploading transcript to gcloud")
+            transcript_blob = bucket.blob("{}_transcript.json".format(self.twilioData['RecordingSid']))
+            transcript_blob.upload_from_string(json.dumps(words))
+            print("done uploading transcript")
+            call.transcript = json.dumps(words)
+            call.save()
+        print("FINISHED CALL %s"% self.twilioData['RecordingSid'])
+
+
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -127,3 +160,33 @@ def status(request, call_id):
     if call is None:
         return HttpResponseNotFound('error: call not found.')
     return render(request, 'twilio_caller/status.html', { 'call': call })
+
+
+def viewer(request, key):
+    keywords = {}
+    transcript_type = request.GET.get('transcript_type','transcript')
+    call = TwilioCall.objects.get(twilio_recording_sid=key)
+    content_id = call.audio_index_id
+    if request.method == "POST":
+        keyword = request.POST['search-term']
+        print("searching for %s"%keyword)
+        keyword_results = audio_search(content_id, keyword)
+        print("got keyword results")
+        print(keyword_results)
+        print("deepgram ID:")
+        print(content_id)
+
+        for i, confidence in enumerate(keyword_results['P']):
+            keywords[str(i)] = {}
+            keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
+            keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
+    transcript = json.loads(call.transcript)
+    speakers = [call.recipient_name, call.caller_name]
+    add_speakers(transcript, speakers)
+    lines = generate_speaker_lines(sort_words(transcript))
+    audio_url = call.recording_url
+    print("rendering with keywords")
+    print(keywords)
+    return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
+                           "keywords":keywords})
+
