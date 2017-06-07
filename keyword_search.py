@@ -53,7 +53,6 @@ def index_audio_url(url):
     """
     data = {"action": "index_content", "userID": DEEPGRAM_KEY, "data_url": url}
     out = requests.post(DEEPGRAM_URL, headers=headers, data=json.dumps(data))
-    pdb.set_trace()
     return json.loads(out.text)['contentID']
 
 

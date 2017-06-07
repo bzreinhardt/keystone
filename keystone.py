@@ -184,11 +184,11 @@ def load_words(path):
 
 def sort_words(transcript):
     """
-    Sorts a transcript by timestamp
+    Sorts a transcript by starttime
     :param transcript: 
     :return: 
     """
-    return sorted(transcript, key=lambda k: k['timestamp'])
+    return sorted(transcript, key=lambda k: k['starttime'])
 
 
 def test_transcript_creation():
