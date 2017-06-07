@@ -17,6 +17,10 @@ class TwilioCall(models.Model):
     twilio_recording_sid = models.TextField(blank=True, null=True)
     twilio_recording_url = models.TextField(blank=True, null=True)
 
+    recording_url = models.TextField(blank=True, null=True)
+    audio_index_id = models.TextField(blank=True, null=True)
+    transcript = models.TextField(blank=True, null=True)
+
     CALL_STATES = (
         ('NI', 'Not Initiated'),
         ('CP', 'Call in Progress'),

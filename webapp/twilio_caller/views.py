@@ -24,21 +24,14 @@ import audio_tools
 from keystone_asr import wav_to_flac, transcribe_gcs, upload_folder, transcribe_slices, transcribe_in_parallel
 from pprint import pprint
 from keyword_search import index_audio_url, audio_search
-from keystone import generate_speaker_lines, sort_words, confidence_to_hex
+from keystone import generate_speaker_lines, sort_words, confidence_to_hex, add_speakers
 
 twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
                 environ.get('TWILIO_AUTH_TOKEN'))
 
-UPLOAD_ORIGINAL = False
+UPLOAD_ORIGINAL = True
 DO_TRANSCRIPTS = True
-DO_INDEXING = False
-
-HACK_DB = "%s/experimental_webapp/db.json" % environ.get('KEYSTONE')
-if HACK_DB:
-    with open(HACK_DB, 'r') as f:
-        mem_db = json.loads(f.read())
-        print('available recordings are: ')
-        print(mem_db['audio'].keys())
+DO_INDEXING = True
 
 class ReusableForm(forms.Form):
     name = forms.CharField(label='Name:', max_length=100)
@@ -105,16 +98,8 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
             print('saved to {}'.format(recording_path))
 
         base = path.basename(recording_path)
-        key = base.split('.')[0]
-
-        db = None
-        if HACK_DB:
-            with open(HACK_DB, 'r') as f:
-                db = json.loads(f.read())
-                if key not in db['audio']:
-                    db['audio'][key] = {}
-
-
+        key = self.twilioData['RecordingSid']
+        call = TwilioCall.objects.get(twilio_recording_sid=key)
 
         client = storage.Client()
         bucket = client.get_bucket('illiad-audio')
@@ -127,20 +112,15 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
             #TODO: need to figure out secure way of actually doing this
             blob.make_public()
             url = blob.public_url
-            if db:
-                db['audio'][key]['aws_url'] = url
-                with open(HACK_DB, 'w') as f:
-                    f.write(json.dumps(db))
-                    print("original url saved")
+            call.recording_url = url
+            call.save()
 
         if DO_INDEXING:
             print("Indexing file")
             deepgram_id = index_audio_url(url)
-            if db:
-                db['audio'][key]['deepgram_id'] = deepgram_id
-                with open(HACK_DB, 'w') as f:
-                    f.write(json.dumps(db))
-                    print("Deepgram ID saved")
+            call.audio_index_id = deepgram_id
+            call.save()
+
         if DO_TRANSCRIPTS:
             #TODO: delete original from local filesystem
             print("slicing file")
@@ -156,11 +136,8 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
             transcript_blob = bucket.blob("{}_transcript.json".format(self.twilioData['RecordingSid']))
             transcript_blob.upload_from_string(json.dumps(words))
             print("done uploading transcript")
-            if db:
-                db['audio'][key]['transcript'] = words
-                with open(HACK_DB, 'w') as f:
-                    f.write(json.dumps(db))
-                    print("saved transcript")
+            call.transcript = json.dumps(words)
+            call.save()
         print("FINISHED CALL %s"% self.twilioData['RecordingSid'])
 
 
@@ -188,8 +165,8 @@ def status(request, call_id):
 def viewer(request, key):
     keywords = {}
     transcript_type = request.GET.get('transcript_type','transcript')
-
-    content_id = mem_db['audio'][key]['deepgram_id']
+    call = TwilioCall.objects.get(twilio_recording_sid=key)
+    content_id = call.audio_index_id
     if request.method == "POST":
         keyword = request.POST['search-term']
         print("searching for %s"%keyword)
@@ -203,9 +180,11 @@ def viewer(request, key):
             keywords[str(i)] = {}
             keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
             keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
-
-    lines = generate_speaker_lines(sort_words(mem_db['audio'][key][transcript_type]))
-    audio_url = mem_db['audio'][key]['aws_url']
+    transcript = json.loads(call.transcript)
+    speakers = [call.recipient_name, call.caller_name]
+    add_speakers(transcript, speakers)
+    lines = generate_speaker_lines(sort_words(transcript))
+    audio_url = call.recording_url
     print("rendering with keywords")
     print(keywords)
     return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,

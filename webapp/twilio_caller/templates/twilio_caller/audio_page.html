@@ -30,7 +30,7 @@ Keyword Search:
 {% endif %}
 <br>
 {% for line in lines %}
-Speaker {{line.speaker}} :
+{{line.speaker}} :
 {%for word in line.words %}
 <a rel="popover" id=word_{{word.id}} onClick="setTime({{word.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{word.hex_confidence}}"> {{word.text}} </a>
 {% endfor %}
