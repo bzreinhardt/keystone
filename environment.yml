@@ -1,4 +1,4 @@
-name: keystone2
+name: keystone3
 channels:
 - !!python/unicode
   'conda-forge'
@@ -288,5 +288,5 @@ dependencies:
   - werkzeug==0.12.1
   - wtforms==2.1
   - xmltodict==0.11.0
-prefix: !!python/unicode '//anaconda/envs/keystone2'
+prefix: !!python/unicode '//anaconda/envs/keystone3'
 
