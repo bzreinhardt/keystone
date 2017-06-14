@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from twilio.rest import Client as Twilio
 from django import forms
 from os import environ
@@ -23,7 +24,7 @@ sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 import audio_tools
 from keystone_asr import wav_to_flac, transcribe_gcs, upload_folder, transcribe_slices, transcribe_in_parallel
 from pprint import pprint
-from keyword_search import index_audio_url, audio_search
+from keyword_search import index_audio_url, audio_search, phrase_search
 from keystone import generate_speaker_lines, sort_words, confidence_to_hex, add_speakers
 
 twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
@@ -32,6 +33,7 @@ twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
 UPLOAD_ORIGINAL = True
 DO_TRANSCRIPTS = True
 DO_INDEXING = True
+DO_PHRASE_DETECTION = False
 
 class ReusableForm(forms.Form):
     name = forms.CharField(label='Name:', max_length=100)
@@ -120,6 +122,16 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
             deepgram_id = index_audio_url(url)
             call.audio_index_id = deepgram_id
             call.save()
+            if DO_PHRASE_DETECTION:
+                phrase_times = {}
+                phrases = settings.KEY_PHRASES
+                for phrase in phrases:
+                    times = audio_search(call.audio_index_id, phrase)
+                    if len(times) > 0:
+                        phrase_times[phrase] = times
+                call.phrases = json.dumps(phrase_times)
+                call.save()
+
 
         if DO_TRANSCRIPTS:
             #TODO: delete original from local filesystem
@@ -138,6 +150,7 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
             print("done uploading transcript")
             call.transcript = json.dumps(words)
             call.save()
+
         print("FINISHED CALL %s"% self.twilioData['RecordingSid'])
 
 
@@ -180,13 +193,31 @@ def viewer(request, key):
             keywords[str(i)] = {}
             keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
             keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
-    transcript = json.loads(call.transcript)
+    if call.transcript:
+        transcript = json.loads(call.transcript)
+    else:
+        transcript = []
     speakers = [call.recipient_name, call.caller_name]
     add_speakers(transcript, speakers)
     lines = generate_speaker_lines(sort_words(transcript))
     audio_url = call.recording_url
+
+    if call.phrases:
+        phrases = json.loads(call.phrases)
+    else:
+        phrases = {}
     print("rendering with keywords")
     print(keywords)
     return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
-                           "keywords":keywords})
+                           "keywords":keywords, "phrases":phrases})
 
+def simple_upload(request):
+    if request.method == 'POST' and request.FILES['myfile']:
+        myfile = request.FILES['myfile']
+        fs = FileSystemStorage()
+        filename = fs.save(myfile.name, myfile)
+        uploaded_file_url = fs.url(filename)
+        return render(request, 'core/simple_upload.html', {
+            'uploaded_file_url': uploaded_file_url
+        })
+    return render(request, 'twilio_caller/upload.html')

@@ -21,8 +21,9 @@
     {% elif call.state == 'CP' %}
     Call in progress...
     {% elif call.state == 'CF' %}
-    Call finished.  Unfortunately at the moment we don't actually
-    transcribe calls.  Check back later, or bug Noah.
+    Call finished.  Please go to
+    {{request.META.HTTP_HOST}}/twilio_caller/viewer/{{call.twilio_recording_sid}}/
+    To view
     {% endif %}
   </div>
 </body>

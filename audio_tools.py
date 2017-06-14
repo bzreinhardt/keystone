@@ -51,6 +51,8 @@ def contiguous_regions(condition):
     second column is the end index."""
 
     # Find the indicies of changes in "condition"
+    condition = condition.astype(int)
+    #pdb.set_trace()
     d = np.diff(condition)
     idx, = d.nonzero()
 
@@ -92,7 +94,11 @@ def find_divisions(audio, silence_sec, rate, threshold=50):
     silence = int(rate * silence_sec)
     all_midpoints = []
     all_startpoints = []
-    for channel in range(0, audio.shape[1]):
+    #pdb.set_trace()
+    audio_shape = audio.shape
+    if len(audio_shape) == 1:
+        audio_shape = (1, 0)
+    for channel in range(0, audio_shape[1]):
         silent_regions = contiguous_regions(audio[:, channel] < threshold)
         long_enough = ((silent_regions[:,1] - silent_regions[:,0]) > silence)
         # this is going to be an nx2 array of the long silent regions
@@ -109,6 +115,10 @@ def find_divisions(audio, silence_sec, rate, threshold=50):
 def slice_wav_file(wav_file):
 
     rate, data = wavfile.read(wav_file)
+    #pdb.set_trace()
+    if len(data.shape) == 1:
+        data = np.vstack((data,data)).T
+
     all_midpoints, all_startpoints = find_divisions(data, SILENCE, rate)
     print("Number of found midpoints is \n"
           "channel1: %d \n"

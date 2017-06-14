@@ -16,6 +16,7 @@ from google.cloud import speech
 from utility import progress_bar
 from audio_tools import decode_filename
 import numpy as np
+import shutil
 import multiprocessing
 import keystone
 import pdb
@@ -31,6 +32,7 @@ DURATION = 59
 GOOGLE_STORAGE = "gs://"
 INTERMEDIATE_SAVE_TIMESTEPS = 20
 TEMP_FILE = "/tmp/temp_transcription.json"
+MAX_CLIENTS = 15
 # AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "french.aiff")
 # AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "chinese.flac")
 
@@ -201,8 +203,7 @@ def get_google_transcription(gcs_uri):
     audio_sample = speech_client.sample(
         content=None,
         source_uri=gcs_uri,
-        encoding='FLAC',
-        sample_rate_hertz=8000)
+        encoding='FLAC')
     operation = audio_sample.long_running_recognize('en-US')
 
     retry_count = 100
@@ -237,21 +238,23 @@ def transcribe_in_parallel(uri_list, name=None, save_intermediate=True):
     transcript = []
     word_num = 0
     uri_index = 0
+    clients = []
+    for i in range (0, MAX_CLIENTS):
+        clients.append(speech.Client())
+
     # Do batches of 10 at a time
-    for k in range(0, len(uri_list), 10):
+    for k in range(0, len(uri_list), MAX_CLIENTS):
         operations = []
-        if k+10 < len(uri_list):
-            uris = uri_list[k:k+10]
+        if k+MAX_CLIENTS < len(uri_list):
+            uris = uri_list[k:k+MAX_CLIENTS]
         else:
             uris = uri_list[k:]
-        for uri in uris:
+        for i, uri in enumerate(uris):
             print('creating client')
-            speech_client = speech.Client()
-            audio_sample = speech_client.sample(
+            audio_sample = clients[i].sample(
                 content=None,
                 source_uri=uri,
-                encoding='FLAC',
-                sample_rate_hertz=8000)
+                encoding='FLAC')
             operations.append(audio_sample.long_running_recognize('en-US'))
 
         complete_operations = np.zeros((len(operations),))
@@ -261,13 +264,18 @@ def transcribe_in_parallel(uri_list, name=None, save_intermediate=True):
             incomplete_operations = np.where(complete_operations == 0)[0]
             for index in incomplete_operations:
                 operation = operations[index]
+                success = False
+
                 try:
                     operation.poll()
                 except ValueError:
-                    "empty segment"
+                    print("valueerror")
+
+
                 if operation.complete:
                     complete_operations[index] = 1
                     results = operation.results
+                    uri_index += 1
                     if results:
                         file = uri_list[k + index].split("//")[-1]
                         metadata = decode_filename(file)
@@ -285,7 +293,7 @@ def transcribe_in_parallel(uri_list, name=None, save_intermediate=True):
                             word["id"] = "%s_%d" % (name, word_num)
                             transcript.append(word)
                             word_num += 1
-        progress_bar(np.sum(complete_operations), len(uri_list), text="transcribed uris: ")
+        progress_bar(uri_index, len(uri_list), text="transcribed uris: ")
         if save_intermediate:
             intermediate = {"uri_list": uri_list, "complete_uris":list(complete_operations), "transcript":transcript}
             with open(TEMP_FILE, 'w') as f:
@@ -346,12 +354,17 @@ def transcribe_microsoft(audio_file, name="", duration=None):
 
 if __name__ == "__main__":
     GS_LIST = "/Users/Zaaron/Data/audio/sam_call_uris.json"
-    TRANSCRIPT_FILE = "/Users/Zaaron/Data/audio/sam_call.json"
-    with open(GS_LIST, 'r') as f:
-        gs_list = json.loads(f.read())
+    PARTIAL_TRANSCRIPT = TEMP_FILE
+    shutil.copyfile(TEMP_FILE, '/tmp/temp_transcript_copy.json')
+    TRANSCRIPT_FILE = "/Users/Zaaron/Data/audio/mike_call.json"
+    with open(PARTIAL_TRANSCRIPT, 'r') as f:
+        t = json.loads(f.read())
+    transcribed_uris = len(t['transcript'])
+
     start = time.time()
-    transcript = transcribe_slices(gs_list)
+    transcript = transcribe_in_parallel(t['uri_list'][transcribed_uris:])
     stop = time.time()
+    t['transcript'] = t['transcript'] + transcript
 
     #print("serial took %f seconds" % (stop-start))
     #start = time.time()
@@ -360,7 +373,7 @@ if __name__ == "__main__":
     #print("parallel took took %f seconds" % (stop-start))
     #print(transcription)
     with open(TRANSCRIPT_FILE, 'w') as file:
-        file.write(json.dumps(transcript))
+        file.write(json.dumps(t['transcript']))
 
     #parallel
     #took 2853.110319 seconds

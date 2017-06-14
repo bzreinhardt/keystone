@@ -29,6 +29,15 @@ Keyword Search:
     {% endfor %}
 {% endif %}
 <br>
+Key Phrases:
+{% for phrase, times in phrases.items %}
+    <br>
+    {{phrase}}:
+    {% for time in times %}
+        <a onClick="setTime({{time}}, 'master_audio');" style="cursor: pointer; cursor: hand;"> {{time}} </a>
+    {% endfor %}
+{% endfor %}
+<br>
 {% for line in lines %}
 {{line.speaker}} :
 {%for word in line.words %}

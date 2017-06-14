@@ -20,6 +20,8 @@ class TwilioCall(models.Model):
     recording_url = models.TextField(blank=True, null=True)
     audio_index_id = models.TextField(blank=True, null=True)
     transcript = models.TextField(blank=True, null=True)
+    #TODO: create a setter/getter for this because it should be a dictionary
+    phrases = models.TextField(blank=True, null=True)
 
     CALL_STATES = (
         ('NI', 'Not Initiated'),

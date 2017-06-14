@@ -1,0 +1,52 @@
+<div id="app-editor-footer-container" class="footer" data-bind="template: { name: 'app-editor-footer-controls-template'}">
+        <div class="footer-content">
+          <div class="control_bar" id="control_bar_id">
+            <div class="control_wrap">
+              <div class="controls">
+                <div id="play-pause-btn" class="c-play-pause-btn c-btn c-play-pause">
+                  <i class="fa fa-play fa-lg" aria-hidden="true"></i>
+                  <i class="fa fa-pause fa-lg" aria-hidden="true"></i>
+                  <label class="hint font_semi" id="hint_label_play">[Enter]</label>
+                </div>
+                <div id="skip_backward_btn" class="c-btn c-backward">
+                  <i class="fa fa-undo fa-lg" aria-hidden="true"></i>
+                  <label class="hint font_semi" id="hint_label_backward">[Shift+Space]</label>
+                </div>
+                <div class="c-currentSpeed progress_bar_wrap" id="current_speed">
+                  <div class="progress_bar">
+                    <div id="speed_bar" class="black_bar"></div>
+                    <div id="speed_indicator" class="indicator grab">
+                      <div class="indicator_text_wrap">
+                        <label><span id="speed_label_text">100</span>%</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="hint">
+                    <div class="hint_container Mac" id="hint_label_speed">
+                      <label class="hint_left" id="hint_label_speedup">[⌘+1]</label>
+                      <label class="font_semi">Speed</label>
+                      <label class="hint_right" id="hint_label_speeddown">[⌘+2]</label>
+                    </div>
+                  </div>
+                </div>
+                <div id="hint_tips" class="c-btn c-tips" data-bind="click: currentTranscription().showHintsModal">
+                  <i class="fa fa-lightbulb-o fa-lg" aria-hidden="true"></i>
+                  <label class="hint font_semi" id="hint_label_tips">Tips</label>
+                </div>
+              </div>
+
+              <div id="progress_bar_container" class="message">
+                <!-- <label id="message_label">No audio, please upload an audio file</label> -->
+                <div id="audio_progress" style="width: 88.2537%;"></div>
+                <!-- <img id="audio_progress_slider" src="/images/slider.png"></img> -->
+              </div>
+
+              <div class="c-current-time">
+                <label id="time_label" class="font_semi">22:03 / 25:00</label>
+              </div>
+              <!-- <div id="control_bar_disable_mask"></div> -->
+            </div>
+          </div>
+        </div>
+
+    </div>

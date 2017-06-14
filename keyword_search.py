@@ -12,6 +12,7 @@ DEEPGRAM_URL = 'https://api.deepgram.com'
 DEEPGRAM_SEARCH_URL = 'https://groupsearch.api.deepgram.com'
 BUCKET_NAME = 'actionitem'
 headers = {'Content-Type': 'application/json'}
+MAX_DISTANCE_BETWEEN_KEYWORDS = 2
 
 
 DEEPGRAM_KEY="1493278813-9f3f167a-a486-41b6-9f5a-ababa889ec10-6231941426800457280262168346310"
@@ -85,6 +86,62 @@ def audio_search(content_id, query):
         out["error"] = None
     return out
 
+def phrase_search(content_id, phrase):
+    """
+    :param content_id: 
+    :param phrase: 
+    :return: List of start times where the key phrase was detected
+    """
+    """ THIS GOT WAY TOO FANCY
+    words = phrase.split(" ")
+    results = []
+    for word in words:
+        data = {"action": "object_search", "userID": DEEPGRAM_KEY, "contentID": content_id,
+                "query": word, "snippet": True, "filter": {"Nmax": 10, "Pmin": 0.55}, "sort": "time"}
+        status = requests.post(DEEPGRAM_URL, headers=headers, data=json.dumps(data))
+        results.append(json.loads(status.text))
+    # This forces the word order to remain the same for now
+    all_potential_pairs = []
+    for i, result in enumerate(results[0:-1]):
+        potential_pairs = []
+        for j, time_a in enumerate(result['startTime']):
+            for k, time_b in enumerate(results[i+1]['startTime']):
+                d = time_b - time_a
+                if abs(d) < MAX_DISTANCE_BETWEEN_KEYWORDS:
+                    potential_pairs.append([j,k])
+        all_potential_pairs.append(potential_pairs)
+    # Seed the potential chains with the pairs
+    potential_chains = all_potential_pairs[0]
+    i = 1
+
+    while i <= len(all_potential_pairs) - 1:
+        new_potential_chains = []
+        for chain in potential_chains:
+            for pair in all_potential_pairs[i+1]:
+                if len(chain) == 0:
+                    pdb.set_trace()
+                index_a = chain[-1]
+                index_b = pair[0]
+                try:
+                    d = abs(results[i]['startTime'][index_a] - results[i+1]['startTime'][index_b])
+                except:
+                    pdb.set_trace()
+                if d < MAX_DISTANCE_BETWEEN_KEYWORDS:
+                    new_chain = chain + pair
+                    new_potential_chains.append(new_chain)
+        potential_chains = new_potential_chains
+        i += 1
+    start_times = []
+    for chain in potential_chains:
+        start_times.append(results[0]['startTime'][chain[0]])
+    return start_times
+
+"""
+
+
+
+
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--key")
@@ -132,9 +189,8 @@ if __name__=="__main__":
         #    sys.stdout.write("Waiting for index to ")
 
 
-    """
-    
-    # This is the id for the ES2016a.Mix-Headset.wav file
+
+    """ # This is the id for the ES2016a.Mix-Headset.wav file
     content_id = "1494481681-043d1a1b-f8c4-41ba-b82a-7dc7c4aa8368-4391418214"
     query = args.query
     search_results = audio_search(content_id, query)
