@@ -1,0 +1,184 @@
+16:48:11 ~/keystone [docker *]$ docker build -t ks3 .
+Sending build context to Docker daemon 267.6 MB
+Step 1/7 : FROM heroku/miniconda
+ ---> 8b1058516fe3
+Step 2/7 : ADD . /keystone
+ ---> Using cache
+ ---> 23eade2ca505
+Step 3/7 : WORKDIR /keystone
+ ---> Using cache
+ ---> bf376c9942e3
+Step 4/7 : RUN echo heh
+ ---> Using cache
+ ---> 5c1c5d4f89ad
+Step 5/7 : RUN conda env create environment.yml
+ ---> Running in 328b28d6d823
+Fetching package metadata .........
+Solving package specifications: ..........
+Pruning fetched packages from the cache ...
+Fetching packages ...
+expat-2.1.0-2. 100% |###############################| Time: 0:00:00 690.26 kB/s
+geos-3.5.1-1.t 100% |###############################| Time: 0:00:03   5.43 MB/s
+giflib-5.1.4-0 100% |###############################| Time: 0:00:00 476.86 kB/s
+gmp-6.1.2-0.ta 100% |###############################| Time: 0:00:00   1.03 MB/s
+icu-54.1-0.tar 100% |###############################| Time: 0:00:01   7.14 MB/s
+jpeg-9b-0.tar. 100% |###############################| Time: 0:00:03 300.71 kB/s
+json-c-0.12-0. 100% |###############################| Time: 0:00:00 362.10 kB/s
+krb5-1.14.2-0. 100% |###############################| Time: 0:00:05 712.33 kB/s
+libgfortran-3. 100% |###############################| Time: 0:00:00   4.33 MB/s
+libiconv-1.14- 100% |###############################| Time: 0:00:01   1.80 MB/s
+libsodium-1.0. 100% |###############################| Time: 0:00:00   1.64 MB/s
+mkl-2017.0.1-0 100% |###############################| Time: 0:00:15   8.88 MB/s
+ncurses-5.9-10 100% |###############################| Time: 0:00:00   1.43 MB/s
+openssl-1.0.2k 100% |###############################| Time: 0:00:00   5.05 MB/s
+pcre-8.39-0.ta 100% |###############################| Time: 0:00:02 290.95 kB/s
+proj4-4.9.3-3. 100% |###############################| Time: 0:00:01   3.03 MB/s
+sqlite-3.13.0- 100% |###############################| Time: 0:00:01   3.48 MB/s
+util-linux-2.2 100% |###############################| Time: 0:00:00   1.38 MB/s
+xerces-c-3.1.4 100% |###############################| Time: 0:00:00   8.56 MB/s
+xz-5.2.2-1.tar 100% |###############################| Time: 0:00:00   4.54 MB/s
+zlib-1.2.8-3.t 100% |###############################| Time: 0:00:00 342.90 kB/s
+curl-7.52.1-0. 100% |###############################| Time: 0:00:00 867.52 kB/s
+freexl-1.0.2-1 100% |###############################| Time: 0:00:00 450.28 kB/s
+hdf4-4.2.12-0. 100% |###############################| Time: 0:00:01 969.91 kB/s
+hdf5-1.8.17-11 100% |###############################| Time: 0:00:01   3.37 MB/s
+libpng-1.6.28- 100% |###############################| Time: 0:00:00 680.66 kB/s
+libpq-9.5.4-4. 100% |###############################| Time: 0:00:00 368.38 kB/s
+libtiff-4.0.6- 100% |###############################| Time: 0:00:00 798.07 kB/s
+libxml2-2.9.4- 100% |###############################| Time: 0:00:00   6.04 MB/s
+pandoc-1.19.2- 100% |###############################| Time: 0:00:03   5.31 MB/s
+python-3.6.1-0 100% |###############################| Time: 0:00:03   6.42 MB/s
+zeromq-4.1.5-0 100% |###############################| Time: 0:00:01   3.06 MB/s
+decorator-4.0. 100% |###############################| Time: 0:00:00 167.53 kB/s
+entrypoints-0. 100% |###############################| Time: 0:00:00   3.33 MB/s
+freetype-2.7-1 100% |###############################| Time: 0:00:01   2.72 MB/s
+ipython_genuti 100% |###############################| Time: 0:00:00 223.75 kB/s
+jedi-0.10.0-py 100% |###############################| Time: 0:00:00 445.99 kB/s
+jsonschema-2.6 100% |###############################| Time: 0:00:00   1.62 MB/s
+kealib-1.4.7-1 100% |###############################| Time: 0:00:00 463.00 kB/s
+libdap4-3.18.3 100% |###############################| Time: 0:00:02   6.29 MB/s
+libnetcdf-4.4. 100% |###############################| Time: 0:00:01   1.94 MB/s
+libspatialite- 100% |###############################| Time: 0:00:01   2.69 MB/s
+markupsafe-0.2 100% |###############################| Time: 0:00:00   1.54 MB/s
+mistune-0.7.4- 100% |###############################| Time: 0:00:00 278.37 kB/s
+numpy-1.12.1-p 100% |###############################| Time: 0:00:00   8.03 MB/s
+openjpeg-2.1.2 100% |###############################| Time: 0:00:00 527.49 kB/s
+pandocfilters- 100% |###############################| Time: 0:00:00  13.13 MB/s
+path.py-10.3.1 100% |###############################| Time: 0:00:00   1.69 MB/s
+ptyprocess-0.5 100% |###############################| Time: 0:00:00 157.71 kB/s
+pycurl-7.43.0- 100% |###############################| Time: 0:00:00   1.44 MB/s
+pyzmq-16.0.2-p 100% |###############################| Time: 0:00:00   1.39 MB/s
+setuptools-27. 100% |###############################| Time: 0:00:00   4.26 MB/s
+simplegeneric- 100% |###############################| Time: 0:00:00   6.83 MB/s
+sip-4.18-py36_ 100% |###############################| Time: 0:00:00   2.33 MB/s
+six-1.10.0-py3 100% |###############################| Time: 0:00:00   1.31 MB/s
+testpath-0.3-p 100% |###############################| Time: 0:00:00 346.07 kB/s
+tornado-4.5.1- 100% |###############################| Time: 0:00:00 999.58 kB/s
+wcwidth-0.1.7- 100% |###############################| Time: 0:00:00 272.59 kB/s
+webencodings-0 100% |###############################| Time: 0:00:00 193.31 kB/s
+fontconfig-2.1 100% |###############################| Time: 0:00:00   1.35 MB/s
+gdal-2.1.3-np1 100% |###############################| Time: 0:00:12   6.78 MB/s
+html5lib-0.999 100% |###############################| Time: 0:00:00 437.95 kB/s
+jinja2-2.9.6-p 100% |###############################| Time: 0:00:00   4.04 MB/s
+pexpect-4.2.1- 100% |###############################| Time: 0:00:00 286.30 kB/s
+pickleshare-0. 100% |###############################| Time: 0:00:00   7.04 MB/s
+pygments-2.2.0 100% |###############################| Time: 0:00:00   1.75 MB/s
+python-dateuti 100% |###############################| Time: 0:00:00 504.69 kB/s
+scipy-0.19.0-n 100% |###############################| Time: 0:00:04   9.13 MB/s
+terminado-0.6- 100% |###############################| Time: 0:00:00 148.83 kB/s
+traitlets-4.3. 100% |###############################| Time: 0:00:00 383.46 kB/s
+wheel-0.29.0-p 100% |###############################| Time: 0:00:00 287.24 kB/s
+bleach-1.5.0-p 100% |###############################| Time: 0:00:00 274.44 kB/s
+django-1.10.5- 100% |###############################| Time: 0:00:01   3.67 MB/s
+jupyter_core-4 100% |###############################| Time: 0:00:00 355.05 kB/s
+pip-9.0.1-py36 100% |###############################| Time: 0:00:00   6.36 MB/s
+prompt_toolkit 100% |###############################| Time: 0:00:00 608.85 kB/s
+qt-4.8.7-3.tar 100% |###############################| Time: 0:00:05   6.80 MB/s
+ipython-6.0.0- 100% |###############################| Time: 0:00:00   1.35 MB/s
+jupyter_client 100% |###############################| Time: 0:00:00 307.57 kB/s
+nbformat-4.3.0 100% |###############################| Time: 0:00:00 402.07 kB/s
+pyqt-4.11.4-py 100% |###############################| Time: 0:00:01   2.78 MB/s
+ipykernel-4.6. 100% |###############################| Time: 0:00:00 407.75 kB/s
+nbconvert-5.1. 100% |###############################| Time: 0:00:00 731.18 kB/s
+jupyter_consol 100% |###############################| Time: 0:00:00 209.36 kB/s
+notebook-5.0.0 100% |###############################| Time: 0:00:01   3.88 MB/s
+qtconsole-4.3. 100% |###############################| Time: 0:00:00 306.89 kB/s
+nb_conda_kerne 100% |###############################| Time: 0:00:00 197.23 kB/s
+widgetsnbexten 100% |###############################| Time: 0:00:00   1.26 MB/s
+ipywidgets-6.0 100% |###############################| Time: 0:00:00 271.96 kB/s
+jupyter-1.0.0- 100% |###############################| Time: 0:00:00  90.80 kB/s
+Extracting packages ...
+[gdal       An unexpected error has occurred.##########                  |  65%
+Please consider posting the following information to the
+conda GitHub issue tracker at:
+
+    https://github.com/conda/conda/issues
+
+
+
+Current conda install:
+
+               platform : linux-64
+          conda version : 4.2.15
+       conda is private : False
+      conda-env version : 4.2.15
+    conda-build version : not installed
+         python version : 2.7.12.final.0
+       requests version : 2.12.4
+       root environment : /opt/conda  (writable)
+    default environment : /opt/conda
+       envs directories : /opt/conda/envs
+          package cache : /opt/conda/pkgs
+           channel URLs : https://repo.continuum.io/pkgs/free/linux-64
+                          https://repo.continuum.io/pkgs/free/noarch
+                          https://repo.continuum.io/pkgs/pro/linux-64
+                          https://repo.continuum.io/pkgs/pro/noarch
+            config file : None
+           offline mode : False
+
+
+
+`$ /opt/conda/bin/conda-env create environment.yml`
+
+
+
+
+    Traceback (most recent call last):
+      File "/opt/conda/lib/python2.7/site-packages/conda/exceptions.py", line 479, in conda_exception_handler
+        return_value = func(*args, **kwargs)
+      File "/opt/conda/lib/python2.7/site-packages/conda_env/cli/main_create.py", line 111, in execute
+        installer.install(prefix, pkg_specs, args, env)
+      File "/opt/conda/lib/python2.7/site-packages/conda_env/installers/conda.py", line 33, in install
+        plan.execute_actions(actions, index, verbose=not args.quiet)
+      File "/opt/conda/lib/python2.7/site-packages/conda/plan.py", line 643, in execute_actions
+        inst.execute_instructions(plan, index, verbose)
+      File "/opt/conda/lib/python2.7/site-packages/conda/instructions.py", line 135, in execute_instructions
+        cmd(state, arg)
+      File "/opt/conda/lib/python2.7/site-packages/conda/instructions.py", line 58, in EXTRACT_CMD
+        extract(arg)
+      File "/opt/conda/lib/python2.7/site-packages/conda/install.py", line 809, in extract
+        t.extractall(path=temp_path)
+      File "/opt/conda/lib/python2.7/tarfile.py", line 2079, in extractall
+        self.extract(tarinfo, path)
+      File "/opt/conda/lib/python2.7/tarfile.py", line 2116, in extract
+        self._extract_member(tarinfo, os.path.join(path, tarinfo.name))
+      File "/opt/conda/lib/python2.7/tarfile.py", line 2192, in _extract_member
+        self.makefile(tarinfo, targetpath)
+      File "/opt/conda/lib/python2.7/tarfile.py", line 2233, in makefile
+        copyfileobj(source, target)
+      File "/opt/conda/lib/python2.7/tarfile.py", line 266, in copyfileobj
+        shutil.copyfileobj(src, dst)
+      File "/opt/conda/lib/python2.7/shutil.py", line 49, in copyfileobj
+        buf = fsrc.read(length)
+      File "/opt/conda/lib/python2.7/tarfile.py", line 831, in read
+        buf += self.fileobj.read(size - len(buf))
+      File "/opt/conda/lib/python2.7/tarfile.py", line 743, in read
+        return self.readnormal(size)
+      File "/opt/conda/lib/python2.7/tarfile.py", line 758, in readnormal
+        return self.__read(size)
+      File "/opt/conda/lib/python2.7/tarfile.py", line 748, in __read
+        buf = self.fileobj.read(size)
+    IOError: invalid data stream
+
+The command '/bin/sh -c conda env create environment.yml' returned a non-zero code: 1
+17:37:09 ~/keystone [docker *]$

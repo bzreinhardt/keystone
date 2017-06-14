@@ -6,6 +6,8 @@ channels:
   'defaults'
 dependencies:
 - !!python/unicode
+  'bleach=1.5.0=py36_0'
+- !!python/unicode
   'curl=7.52.1=0'
 - !!python/unicode
   'decorator=4.0.11=py36_0'
@@ -100,11 +102,15 @@ dependencies:
 - !!python/unicode
   'pygments=2.2.0=py36_0'
 - !!python/unicode
+  'pyqt=5.6.0=py36_2'
+- !!python/unicode
   'python=3.6.1=0'
 - !!python/unicode
   'python-dateutil=2.6.0=py36_0'
 - !!python/unicode
   'pyzmq=16.0.2=py36_0'
+- !!python/unicode
+  'qtconsole=4.3.0=py36_0'
 - !!python/unicode
   'sqlite=3.13.0=0'
 - !!python/unicode
@@ -153,6 +159,8 @@ dependencies:
   'pip=9.0.1=py36_1'
 - !!python/unicode
   'pycurl=7.43.0=py36_2'
+- !!python/unicode
+  'qt=5.6.2=0'
 - !!python/unicode
   'readline=6.2=2'
 - !!python/unicode

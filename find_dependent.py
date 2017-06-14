@@ -1,10 +1,8 @@
-name: keystone
-channels:
+conda_packages_from_environment_yml = '''
 - !!python/unicode
-  'conda-forge'
+  'appnope=0.1.0=py36_0'
 - !!python/unicode
-  'defaults'
-dependencies:
+  'bleach=1.5.0=py36_0'
 - !!python/unicode
   'curl=7.52.1=0'
 - !!python/unicode
@@ -100,11 +98,15 @@ dependencies:
 - !!python/unicode
   'pygments=2.2.0=py36_0'
 - !!python/unicode
+  'pyqt=5.6.0=py36_2'
+- !!python/unicode
   'python=3.6.1=0'
 - !!python/unicode
   'python-dateutil=2.6.0=py36_0'
 - !!python/unicode
   'pyzmq=16.0.2=py36_0'
+- !!python/unicode
+  'qtconsole=4.3.0=py36_0'
 - !!python/unicode
   'sqlite=3.13.0=0'
 - !!python/unicode
@@ -154,6 +156,8 @@ dependencies:
 - !!python/unicode
   'pycurl=7.43.0=py36_2'
 - !!python/unicode
+  'qt=5.6.2=0'
+- !!python/unicode
   'readline=6.2=2'
 - !!python/unicode
   'scipy=0.19.0=np112py36_0'
@@ -171,112 +175,21 @@ dependencies:
   'xerces-c=3.1.4=0'
 - !!python/unicode
   'xz=5.2.2=1'
-- pip:
-  - appdirs==1.4.3
-  - asn1crypto==0.22.0
-  - beautifulsoup4==4.6.0
-  - boto==2.46.1
-  - boto3==1.4.4
-  - botocore==1.5.46
-  - cachetools==2.0.0
-  - cffi==1.10.0
-  - click==6.7
-  - cryptography==1.9
-  - cycler==0.10.0
-  - dill==0.2.6
-  - docutils==0.13.1
-  - enum34==1.1.6
-  - flask==0.12.1
-  - flask-script==2.0.5
-  - flask-sqlalchemy==2.2
-  - future==0.16.0
-  - gapic-google-cloud-datastore-v1==0.15.3
-  - gapic-google-cloud-error-reporting-v1beta1==0.15.3
-  - gapic-google-cloud-logging-v2==0.91.3
-  - gapic-google-cloud-pubsub-v1==0.15.4
-  - gapic-google-cloud-spanner-admin-database-v1==0.15.3
-  - gapic-google-cloud-spanner-admin-instance-v1==0.15.3
-  - gapic-google-cloud-spanner-v1==0.15.3
-  - gapic-google-cloud-speech-v1==0.15.3
-  - gapic-google-cloud-speech-v1beta1==0.15.3
-  - gapic-google-cloud-vision-v1==0.90.3
-  - gcs-oauth2-boto-plugin==1.14
-  - google-api-python-client==1.6.2
-  - google-auth==1.0.1
-  - google-auth-httplib2==0.0.2
-  - google-cloud==0.25.0
-  - google-cloud-bigquery==0.24.0
-  - google-cloud-bigtable==0.24.0
-  - google-cloud-core==0.24.1
-  - google-cloud-datastore==1.0.0
-  - google-cloud-dns==0.24.0
-  - google-cloud-error-reporting==0.24.2
-  - google-cloud-language==0.24.1
-  - google-cloud-logging==1.0.0
-  - google-cloud-monitoring==0.24.0
-  - google-cloud-pubsub==0.25.0
-  - google-cloud-resource-manager==0.24.0
-  - google-cloud-runtimeconfig==0.24.0
-  - google-cloud-spanner==0.24.2
-  - google-cloud-speech==0.25.1
-  - google-cloud-storage==1.1.1
-  - google-cloud-translate==0.24.0
-  - google-cloud-vision==0.24.0
-  - google-gax==0.15.13
-  - google-resumable-media==0.0.2
-  - googleapis-common-protos==1.5.2
-  - grpc-google-iam-v1==0.11.1
-  - grpcio==1.3.5
-  - httplib2==0.10.3
-  - idna==2.5
-  - ipython-genutils==0.2.0
-  - itsdangerous==0.24
-  - jmespath==0.9.2
-  - json2html==1.1.1
-  - jupyter-client==5.0.1
-  - jupyter-console==5.1.0
-  - jupyter-core==4.3.0
-  - matplotlib==2.0.2
-  - nb-conda-kernels==2.1.0
-  - nltk==3.2.4
-  - oauth2client==3.0.0
-  - packaging==16.8
-  - ply==3.8
-  - prompt-toolkit==1.0.14
-  - proto-google-cloud-datastore-v1==0.90.4
-  - proto-google-cloud-error-reporting-v1beta1==0.15.3
-  - proto-google-cloud-logging-v2==0.91.3
-  - proto-google-cloud-pubsub-v1==0.15.4
-  - proto-google-cloud-spanner-admin-database-v1==0.15.3
-  - proto-google-cloud-spanner-admin-instance-v1==0.15.3
-  - proto-google-cloud-spanner-v1==0.15.3
-  - proto-google-cloud-speech-v1==0.15.3
-  - proto-google-cloud-speech-v1beta1==0.15.3
-  - proto-google-cloud-vision-v1==0.90.3
-  - protobuf==3.3.0
-  - pyasn1==0.2.3
-  - pyasn1-modules==0.0.8
-  - pycparser==2.17
-  - pydub==0.18.0
-  - pyjwt==1.5.0
-  - pyopenssl==17.0.0
-  - pyparsing==2.2.0
-  - pysocks==1.6.7
-  - pytz==2017.2
-  - regex==2017.4.29
-  - requests==2.14.2
-  - retry-decorator==1.1.0
-  - rsa==3.4.2
-  - s3transfer==0.1.10
-  - socksipy-branch==1.1
-  - soundfile==0.9.0.post1
-  - speechrecognition==3.6.5
-  - sqlalchemy==1.1.9
-  - twilio==6.2.0
-  - uritemplate==3.0.0
-  - wave==0.0.2
-  - werkzeug==0.12.1
-  - wtforms==2.1
-  - xmltodict==0.11.0
-prefix: !!python/unicode '//anaconda/envs/keystone2'
+'''
 
+conda_packages = []
+for line in conda_packages_from_environment_yml.split('\n'):
+    if line.startswith('  '):
+        conda_packages.append(line[3:-1])
+
+from pprint import pprint
+
+package_names = [p.split('=')[0] for p in conda_packages]
+pprint(package_names)
+
+from subprocess import run
+
+#for package_name in package_names:
+#    call(['conda', 'info', package_name])
+
+run(['conda', 'info',
