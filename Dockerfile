@@ -3,7 +3,8 @@ FROM heroku/miniconda
 ADD . /keystone
 WORKDIR /keystone
 
-RUN echo heh
+RUN apt-get update
+RUN apt-get install -y gcc libssl-dev libffi-dev libsndfile-dev ffmpeg
 RUN conda env create environment.yml
 
 WORKDIR /keystone/webapp

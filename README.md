@@ -39,6 +39,12 @@ python manage.py runserver
 
 You should see a few messages saying that the server found an ngrok tunnel, something like `d7b5194.ngrok.io`.  Go there in a web browser and you should see our web app.
 
+### Google cloud platform
+
+Follow these instructions:
+
+https://cloud.google.com/storage/docs/gsutil_install
+
 ### Amicorpus data
 
 Download amicorpus data
