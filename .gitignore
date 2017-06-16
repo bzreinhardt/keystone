@@ -12,6 +12,9 @@ db.sqlite3
 \#*\#
 .\#*
 
+# sed
+*.bak
+
 # data directories
 amicorpus/
 amicorp_generated_crosstalk_data/
