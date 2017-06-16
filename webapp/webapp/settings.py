@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '-uars0ga6yf0&nbagj%z-&wz)+kvw$b$wc=q_i52_@-9a9yg30'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -46,6 +46,9 @@ if DEBUG:
     if not found_ngrok:
         print('No ngrok tunnels found; developing webhooks (eg for Twilio) may be difficult')
 else:
+    ALLOWED_HOSTS.append('54.183.66.153')
+    ALLOWED_HOSTS.append('evoke.ai')
+    ALLOWED_HOSTS.append('www.evoke.ai')
     pass # someday add the real URL here
     
 
@@ -167,6 +170,7 @@ LOGGING = {
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 # Key phrases to search speech for
 
