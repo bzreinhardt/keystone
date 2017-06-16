@@ -83,6 +83,10 @@ This will start a webapp that lets you start to play with transcripts and audio.
 Going to 127.0.0.1 will show you a list of the audio_keys in the database
 127.0.0.1/audio/<audio_key> will take you to a page for that specific key
 
+To understand how our webapp works in production, consult the [Django and nginx uwsgi tutorial][uwsgi].
+
+[uwsgi]: http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html
+
 ### Transcripts
 Proposed official transcript format:
 List of words which are dictionaries with the following fields:
