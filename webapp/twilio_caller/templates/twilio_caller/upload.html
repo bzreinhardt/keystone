@@ -1,0 +1,19 @@
+{% extends 'twilio_caller/header.html' %}
+
+{% load static %}
+
+{% block body %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="myfile">
+      <input type="text" name="caller_name">
+      <input type="text" name="recipient_name">
+    <button type="submit">Upload</button>
+  </form>
+
+  {% if key %}
+    Call finished.  Please go to
+    {{request.META.HTTP_HOST}}/twilio_caller/viewer/{{ key }}/
+  {% endif %}
+
+{% endblock %}

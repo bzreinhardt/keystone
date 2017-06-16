@@ -13,6 +13,8 @@ DEEPGRAM_SEARCH_URL = 'https://groupsearch.api.deepgram.com'
 BUCKET_NAME = 'actionitem'
 headers = {'Content-Type': 'application/json'}
 MAX_DISTANCE_BETWEEN_KEYWORDS = 2
+DEFAULT_MIN_CONFIDENCE=0.55
+DEFAULT_MAX_RETURNS = 10
 
 
 DEEPGRAM_KEY="1493278813-9f3f167a-a486-41b6-9f5a-ababa889ec10-6231941426800457280262168346310"
@@ -69,7 +71,7 @@ def get_indexing_status(content_id):
 
 
 
-def audio_search(content_id, query):
+def audio_search(content_id, query, min_confidence=DEFAULT_MIN_CONFIDENCE, max_returns=DEFAULT_MAX_RETURNS):
     """
     
     :param content_id: deepgram id string
@@ -77,7 +79,7 @@ def audio_search(content_id, query):
     :return: dictionary of lists - {"snippet", "P", "endTime", "startTime", "N", "error")
     """
     data = {"action": "object_search", "userID": DEEPGRAM_KEY, "contentID": content_id,
-            "query": query, "snippet": True, "filter": {"Nmax": 10, "Pmin": 0.55}, "sort": "time"}
+            "query": query, "snippet": True, "filter": {"Nmax": max_returns, "Pmin": min_confidence}, "sort": "time"}
 
     status = requests.post(DEEPGRAM_URL, headers=headers, data=json.dumps(data))
     # will return error if it's not indexed yet

@@ -8,7 +8,7 @@ import sys
 import math
 from utility import progress_bar
 
-PATH="/Users/Zaaron/Data/audio/ben_noah_5_23.wav"
+PATH="/Users/Zaaron/Downloads/InterviewAudio10.wav"
 
 # division time heurisitc in seconds
 SILENCE = 0.5 #seconds
@@ -140,7 +140,11 @@ def slice_wav_file(wav_file):
 
 def cut_file(file, length_sec=10, out_file=None, split=False):
     rate, data = wavfile.read(file)
-    out = data[0:int(length_sec*rate), :]
+    if len(data.shape) > 1:
+        out = data[0:int(length_sec*rate), :]
+    else:
+        out = data[0:int(length_sec*rate)]
+        channel = 0
     if split:
         for channel in range(0, out.shape[1]):
 
@@ -158,4 +162,4 @@ def cut_file(file, length_sec=10, out_file=None, split=False):
 
 
 if __name__=="__main__":
-    slice_wav_file(PATH)
+    cut_file(PATH, length_sec=120)
