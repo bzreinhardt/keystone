@@ -17,6 +17,6 @@ source ~/keystone_env.sh
 echo '= source activate keystone'
 source activate keystone
 echo '= killing any uwsgi processes'
-killall -q uwsgi
+killall uwsgi
 set -x
 uwsgi --socket /tmp/evoke.sock --module webapp.wsgi --chmod-socket=666 &> ~/logs/uwsgi.log &
