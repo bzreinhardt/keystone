@@ -18,12 +18,12 @@ from django.views.generic import RedirectView
 from django.contrib import admin
 from django.shortcuts import redirect
 
-def index_redirect(request):
-    return redirect('/twilio_caller/', permanent=False)
+#def index_redirect(request):
+#    return redirect('/twilio_caller/', permanent=False)
 
 urlpatterns = [
-    url(r'^$', index_redirect),
-    url(r'^twilio_caller/', include('twilio_caller.urls')),
+    #url(r'^$', index_redirect),
+    url(r'^alpha/', include('twilio_caller.urls')),
     url(r'^admin/', admin.site.urls),
 ]
 

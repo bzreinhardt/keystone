@@ -8,7 +8,7 @@ import sys
 import math
 from utility import progress_bar
 
-PATH="/Users/Zaaron/Data/audio/ben_noah_5_23.wav"
+PATH="/Users/Zaaron/Downloads/InterviewAudio10.wav"
 
 # division time heurisitc in seconds
 SILENCE = 0.5 #seconds
@@ -82,8 +82,10 @@ def find_unique_midpoints(midpoints_array, similarity_factor=0):
     :return: 1xn array
     """
     groups = consecutive(midpoints_array)
-    midpoints = np.array([int(np.mean(group)) for group in groups])
-    #pdb.set_trace()
+    if len(groups[0]) == 0:
+        midpoints = np.array([])
+    else:
+        midpoints = np.array([int(np.mean(group)) for group in groups])
     return midpoints
 
 def find_divisions(audio, silence_sec, rate, threshold=50):
@@ -128,19 +130,25 @@ def slice_wav_file(wav_file):
     flac_dir = "%s/%s_split" % (directory, name)
     if not os.path.isdir(flac_dir):
         os.mkdir(flac_dir)
+
     for i, channel in enumerate(all_midpoints):
+
         for j, pair in enumerate(zip([0] + channel, channel + [data.shape[0]])):
             slice = data[pair[0]:pair[1], i]
             startpoint = all_startpoints[i][j]
             time_in_sec = float(startpoint) / float(rate)
             outfile = encode_filename(name, channel=i, timestamp=time_in_sec, extension="flac")
-            progress_bar(j, len(channel), "writing flac file: ")
+            progress_bar(j, len(channel)+1, "writing flac file: ")
             sf.write(os.path.join(flac_dir, outfile), slice, rate)
     return flac_dir
 
 def cut_file(file, length_sec=10, out_file=None, split=False):
     rate, data = wavfile.read(file)
-    out = data[0:int(length_sec*rate), :]
+    if len(data.shape) > 1:
+        out = data[0:int(length_sec*rate), :]
+    else:
+        out = data[0:int(length_sec*rate)]
+        channel = 0
     if split:
         for channel in range(0, out.shape[1]):
 
@@ -158,4 +166,4 @@ def cut_file(file, length_sec=10, out_file=None, split=False):
 
 
 if __name__=="__main__":
-    slice_wav_file(PATH)
+    cut_file(PATH, length_sec=120)

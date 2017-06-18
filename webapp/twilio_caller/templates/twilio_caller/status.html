@@ -22,8 +22,8 @@
     Call in progress...
     {% elif call.state == 'CF' %}
     Call finished.  Please go to
-    {{request.META.HTTP_HOST}}/twilio_caller/viewer/{{call.twilio_recording_sid}}/
-    To view
+    <a href="http://{{request.META.HTTP_HOST}}/alpha/viewer/{{call.twilio_recording_sid}}/">{{request.META.HTTP_HOST}}/viewer/{{call.twilio_recording_sid}}/</a>
+    to view.
     {% endif %}
   </div>
 </body>

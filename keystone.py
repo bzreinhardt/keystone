@@ -52,16 +52,20 @@ def generate_speaker_lines(words):
     lines = []
     previous_speaker = -1
     current_line = {"words":[]}
-    for word in words:
+
+    for i, word in enumerate(words):
         if 'confidence' not in word:
             word['confidence'] = 1.0
         word['hex_confidence'] = confidence_to_hex(word['confidence'])
-        if previous_speaker != word['speaker'] and previous_speaker is not -1:
+        if (previous_speaker != word['speaker'] and previous_speaker is not -1):
             current_line['speaker'] = previous_speaker
             lines.append(current_line)
             current_line = {"words":[]}
         current_line['words'].append(word)
         previous_speaker = word['speaker']
+        if i == len(words) - 1:
+            current_line['speaker'] = previous_speaker
+            lines.append(current_line)
     return lines
 
 
