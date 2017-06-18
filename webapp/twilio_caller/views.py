@@ -74,7 +74,7 @@ def call(request):
     call.save()
     #import pdb
     #pdb.set_trace()
-    if request.method == 'POST' and request.FILES['myfile']:
+    if request.method == 'POST' and 'myfile' in request.FILES.keys():
         pattern = re.compile('[\W_]+')
         myfile = request.FILES['myfile']
         name, file_extension = path.splitext(myfile.name)
