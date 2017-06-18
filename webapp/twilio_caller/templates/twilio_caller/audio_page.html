@@ -5,7 +5,7 @@
 </audio>
 <br>
 <h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
-Keyword Search:
+<h3>Keyword Search:</h3>
 
  <form id="keyword" action="" method="POST" onsubmit="keywordSubmit();">
 
@@ -29,12 +29,12 @@ Keyword Search:
     {% endfor %}
 {% endif %}
 <br>
-Key Phrases:
+<h3>Key Phrases:</h3>
 {% for phrase, times in phrases.items %}
     <br>
     {{phrase}}:
-    {% for time in times %}
-        <a onClick="setTime({{time}}, 'master_audio');" style="cursor: pointer; cursor: hand;"> {{time}} </a>
+    {% for time in times.times %}
+        <a onClick="setTime({{time}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{times.hex_confidence}}"> {{time}} </a>
     {% endfor %}
 {% endfor %}
 <br>

@@ -22,6 +22,8 @@ class TwilioCall(models.Model):
     transcript = models.TextField(blank=True, null=True)
     #TODO: create a setter/getter for this because it should be a dictionary
     phrases = models.TextField(blank=True, null=True)
+    phrase_results = models.TextField(blank=True, null=True)
+    min_confidence = models.FloatField(blank=True, null=True)
 
     CALL_STATES = (
         ('NI', 'Not Initiated'),

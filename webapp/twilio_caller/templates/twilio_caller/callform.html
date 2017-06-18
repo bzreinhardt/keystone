@@ -17,41 +17,63 @@
       conversation, including a summary of key points, deadlines, and
       action items you&nbsp;discussed.</p>
     
-    <form method="POST" action="{% url 'call' %}">
+    <form method="POST" action="{% url 'call' %}" enctype="multipart/form-data">
       <div class="dialer-form">
         <div class="caller">
           <h2>You are...</h2>
           <div>
             <label for="caller-name">Your name</label>
-            <div><input name="caller-name" type="text"></div>
+            <div><input name="caller-name" type="text" autocomplete="name"></div>
           </div>
           <div>
             <label for="caller-email">Your email</label>
-            <div><input name="caller-email" type="text"></div>
+            <div><input name="caller-email" type="text" autocomplete="email"></div>
           </div>
           <div>
             <label for="caller-number">Your number</label>
-            <div><input name="caller-number" type="text"></div>
+            <div><input name="caller-number" type="text" placeholder="# with area code" autocomplete="tel"></div>
           </div>
         </div>
         <div class="recipient">
           <h2>You're calling...</h2>
           <div>
             <label for="recipient-name">Their name</label>
-            <div><input name="recipient-name" type="text"></div>
+            <div><input name="recipient-name" type="text" autocomplete="name"></div>
           </div>
           <div>
             <label for="recipient-email">Their email</label>
-            <div><input name="recipient-email" type="text"></div>
+            <div><input name="recipient-email" type="text" autocomplete="email"></div>
           </div>
           <div>
             <label for="recipient-number">Their number</label>
-            <div><input name="recipient-number" type="text"></div>
+            <div><input name="recipient-number" type="text" placeholder="# with area code" autocomplete="tel"></div>
           </div>
         </div>
+
       </div>
+      <div class="upload">
+        <h3> Upload a file instead </h3>
+        <input type="file" name="myfile">
+      </div>
+      <input class="call-btn" type="submit" value="Go!">
+      <div class="disclaimer">
+        <h4>The magic may take a bit. Sit tight! We'll email
+        when everything is done. </h4>
+      </div>
+      <div class="settings">
+        <h2> Settings </h2>
+          <div><input type="checkbox" name="transcript" value="True"> Generate a terrible transcript</div>
+        <br>
+          Audio bookmarks separated by semicolons.<br>
+          These phrases will generate notes. The entire audio will still be searchable:<br> <br>
+          <div><textarea name="phrases" rows="10" cols="100">action items; that's fascinating; make a note; </textarea> </div>
+        <br>
+        Wonky: minimum acceptable confidence on audio search
+        <div><input type=text name="min_confidence" value="0.3"></div>
+      </div>
+
       {% csrf_token %}
-      <input class="call-btn" type="submit" value="Call">
+
     </form>
   </div>
 </body>
