@@ -6,6 +6,8 @@ git reset --hard HEAD
 git checkout master
 git pull origin master
 
+export PYTHONPATH=$(pwd):$PYTHONPATH
+
 echo '= setting DEBUG = True'
 sed -i 's/DEBUG = True/DEBUG = False/g' webapp/webapp/settings.py
 
