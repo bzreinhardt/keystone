@@ -190,7 +190,7 @@ def run_audio_pipeline(recording_path, call, upload_original=False,
     email_text = "Finished processing audio for %s. Results are available at %s" % (call.caller_name, display_url)
     send_simple_message(subject='audio pipeline complete!', text= email_text )
     if call.caller_email:
-        send_simple_message(to=caller_email, subject='Evokation Complete!', text=email_text)
+        send_simple_message(to=call.caller_email, subject='Evokation Complete!', text=email_text)
     return (True, key)
 
 
@@ -290,8 +290,6 @@ def viewer(request, key):
         transcript = json.loads(call.transcript)
     else:
         transcript = []
-    import pdb
-    #pdb.set_trace()
     speakers = [call.recipient_name, call.caller_name]
     transcript = add_speakers(transcript, speakers)
     lines = generate_speaker_lines(sort_words(transcript))
@@ -305,13 +303,15 @@ def viewer(request, key):
             if phrase in bad_phrases:
                 continue
             phrases[phrase] = {'times':[]}
+            #pdb.set_trace()
             for i, time in enumerate(phrase_results[phrase]['startTime']):
-                phrases[phrase]['times'].append({'time':phrase_results['startTime'][i],
-                                                 'confidence':phrase_results['P'][i]})
+                phrases[phrase]['times'].append({'time':phrase_results[phrase]['startTime'][i],
+                                                 'confidence':confidence_to_hex(phrase_results[phrase]['P'][i])})
     print("rendering with keywords")
     print(keywords)
     return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
                            "keywords":keywords, "phrases":phrases})
+
 
 def simple_upload(request):
     if request.method == 'POST' and request.FILES['myfile']:

@@ -30,11 +30,11 @@
 {% endif %}
 <br>
 <h3>Key Phrases:</h3>
-{% for phrase, times in phrases.items %}
+{% for phrase, values in phrases.items %}
     <br>
     {{phrase}}:
-    {% for time in times.times %}
-        <a onClick="setTime({{time}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{times.hex_confidence}}"> {{time}} </a>
+    {% for value in values.times %}
+        <a onClick="setTime({{value.time}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{value.confidence}}"> {{value.time}} </a>
     {% endfor %}
 {% endfor %}
 <br>
