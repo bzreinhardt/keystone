@@ -30,13 +30,34 @@
 {% endif %}
 <br>
 <h3>Key Phrases:</h3>
-{% for phrase, values in phrases.items %}
-    <br>
-    {{phrase}}:
-    {% for value in values.times %}
-    <a onClick="setTime({{value.time}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{value.confidence}}"> {{value.time}} </a> <br>
+<table style="border-spacing: 10px;">
+    <tr>
+        <th style="text-align:center; padding: 10px;">Clip</th>
+        <th style="text-align:center; padding: 10px;" align="center">Confidence</th>
+        <th style="text-align:center; padding: 10px;" align="center">Who</th>
+        <th style="text-align:center; padding: 10px;" align="center">What</th>
+        <th style="text-align:center; padding: 10px;" align="center">Where</th>
+        <th style="text-align:center; padding: 10px;" align="center">When</th>
+        <th style="text-align:center; padding: 10px;" align="center">Why</th>
+    </tr>
+    {% for phrase, values in phrases.items %}
+        <tr>
+            <th>{{phrase}}</th>
+        </tr>
+        {% for value in values.times %}
+            <tr>
+
+                <td style="text-align:center; padding: 10px;" align="center"> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></td>
+                <td style="text-align:center; padding: 10px;" align="center"> {{value.confidence}} </td>
+                <td style="text-align:center; padding: 10px;" align="center"> {{value.who}} </td>
+                <td style="text-align:center; padding: 10px;" align="center"> {{value.what}} </td>
+                <td style="text-align:center; padding: 10px;" align="center"> {{value.where}} </td>
+                <td style="text-align:center; padding: 10px;" align="center"> {{value.when}} </td>
+                <td style="text-align:center; padding: 10px;" align="center"> {{value.why}} </td>
+            </tr>
+        {% endfor %}
     {% endfor %}
-{% endfor %}
+</table>
 <br>
 {% for line in lines %}
 {{line.speaker}} :

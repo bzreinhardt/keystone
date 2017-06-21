@@ -43,6 +43,8 @@ DO_INDEXING = True
 DO_PHRASE_DETECTION = True
 NUM_KEYWORDS = 4
 DEFAULT_PHRASE_TIME_SEC=15
+BAD_PHRASES = ['', ' ']
+
 
 class ReusableForm(forms.Form):
     name = forms.CharField(label='Name:', max_length=100)
@@ -195,58 +197,7 @@ def status(request, call_id):
     return render(request, 'twilio_caller/status.html', { 'call': call })
 
 
-def viewer(request, key):
-    keywords = {}
-    transcript_type = request.GET.get('transcript_type','transcript')
-    call = TwilioCall.objects.get(twilio_recording_sid=key)
-    content_id = call.audio_index_id
-    if request.method == "POST":
-        keyword = request.POST['search-term']
-        print("searching for %s"%keyword)
-        keyword_results = audio_search(content_id, keyword)
-        print("got keyword results")
-        print(keyword_results)
-        print("deepgram ID:")
-        print(content_id)
-        if keyword_results['error']:
-            keywords['0'] = {}
-            keywords['0']['starttime'] = 'Sorry, we are still crunching your conversation. Check back in a minute'
-        elif len(keyword_results['P']) == 0:
-            keywords['0'] = {}
-            keywords['0']['starttime'] = "No Results"
-        else:
-            for i, confidence in enumerate(keyword_results['P']):
-                keywords[str(i)] = {}
-                keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
-                keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
-    if call.transcript:
-        transcript = json.loads(call.transcript)
-    else:
-        transcript = []
-    speakers = [call.recipient_name, call.caller_name]
-    transcript = add_speakers(transcript, speakers)
-    lines = generate_speaker_lines(sort_words(transcript))
-    audio_url = call.recording_url
-    phrases = {}
-    bad_phrases = ['', ' ']
-    if call.phrase_results:
-        phrase_results = json.loads(call.phrase_results)
-
-        for phrase in phrase_results:
-            if phrase in bad_phrases:
-                continue
-            phrases[phrase] = {'times':[]}
-            #pdb.set_trace()
-            for i, time in enumerate(phrase_results[phrase]['startTime']):
-                phrases[phrase]['times'].append({'time':phrase_results[phrase]['startTime'][i],
-                                                 'confidence':confidence_to_hex(phrase_results[phrase]['P'][i])})
-    print("rendering with keywords")
-    print(keywords)
-    return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
-                           "keywords":keywords, "phrases":phrases})
-
-
-def backend_viewer(request, key):
+def viewer(request, key, show_confidence=None):
     keywords = {}
     transcript_type = request.GET.get('transcript_type','transcript')
     call = TwilioCall.objects.get(twilio_recording_sid=key)
@@ -279,12 +230,128 @@ def backend_viewer(request, key):
     lines = generate_speaker_lines(sort_words(transcript))
     audio_url = call.recording_url
     print_phrases = {}
+    if call.phrase_results:
+        phrase_results = json.loads(call.phrase_results)
+        phrases = json.loads(call.phrases)
+        for phrase in phrase_results:
+            if phrase in BAD_PHRASES:
+                continue
+            print_phrases[phrase] = {'times':[]}
+
+            for i, time in enumerate(phrase_results[phrase]['startTime']):
+
+                if phrase_results[phrase]['is_phrase'][i] is False or phrase_results[phrase]['is_phrase'][i] == 'False':
+                    continue
+                if phrases[phrase]['type']=='before':
+                    starttime = time - DEFAULT_PHRASE_TIME_SEC
+                    stoptime = time
+                else:
+                    starttime = time
+                    stoptime = time - DEFAULT_PHRASE_TIME_SEC
+                confidence = phrase_results[phrase]['P'][i]
+                url = phrase_results[phrase]['slices'][i]
+                hex_confidence = 0
+                if show_confidence is not None:
+                    hex_confidence = confidence_to_hex(confidence)
+                out_dict = {'keytime':time,
+                           'starttime' : starttime,
+                           'stoptime' : stoptime,
+                           'confidence': confidence,
+                           'url': url,
+                           'hex_confidence':hex_confidence}
+                for question in ['who', 'what', 'where', 'when', 'why']:
+                    if question+"s" in phrase_results[phrase]:
+                        if len(phrase_results[phrase][question+"s"][i]) > 0:
+                            out_dict[question] = phrase_results[phrase][question+"s"][i]
+
+                print_phrases[phrase]['times'].append(out_dict)
+    return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
+                           "keywords":keywords, "phrases":print_phrases})
+
+
+def backend_viewer(request, key):
+    keywords = {}
+    transcript_type = request.GET.get('transcript_type','transcript')
+    call = TwilioCall.objects.get(twilio_recording_sid=key)
+    content_id = call.audio_index_id
+
+    if request.method == "POST":
+        if 'keyword-submit' in request.POST:
+            print("got keyword post")
+            keyword = request.POST['search-term']
+            print("searching for %s"%keyword)
+            keyword_results = audio_search(content_id, keyword)
+            print("got keyword results")
+            print(keyword_results)
+            print("deepgram ID:")
+            print(content_id)
+            if keyword_results['error']:
+                keywords['0'] = {}
+                keywords['0']['starttime'] = 'Sorry, we are still crunching your conversation. Check back in a minute'
+            elif len(keyword_results['P']) == 0:
+                keywords['0'] = {}
+                keywords['0']['starttime'] = "No Results"
+            else:
+                for i, confidence in enumerate(keyword_results['P']):
+                    keywords[str(i)] = {}
+                    keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
+                    keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
+        elif 'phrase-submit' in request.POST:
+
+            if call.phrase_results:
+                print("got phrase post")
+                phrase_results = json.loads(call.phrase_results)
+                phrases = json.loads(call.phrases)
+                for phrase in phrase_results:
+                    if phrase in BAD_PHRASES:
+                        continue
+                    is_phrase = []
+                    whos = []
+                    whats = []
+                    wheres = []
+                    whens = []
+                    whys = []
+                    for time in phrase_results[phrase]['startTime']:
+
+                        if "%s_%s_exists" % (phrase, time) in request.POST:
+                            is_phrase.append(request.POST["%s_%s_exists" % (phrase, time)] == 'True')
+                        else:
+                            is_phrase.append(False)
+                        if "%s_%s_who" % (phrase, time) in request.POST:
+                            whos.append(request.POST["%s_%s_who" % (phrase, time)])
+                        if "%s_%s_what" % (phrase, time) in request.POST:
+                            whats.append(request.POST["%s_%s_what" % (phrase, time)])
+                        if "%s_%s_where" % (phrase, time) in request.POST:
+                            wheres.append(request.POST["%s_%s_where" % (phrase, time)])
+                        if "%s_%s_when" % (phrase, time) in request.POST:
+                            whens.append(request.POST["%s_%s_when" % (phrase, time)])
+                        if "%s_%s_why" % (phrase, time) in request.POST:
+                            whys.append(request.POST["%s_%s_why" % (phrase, time)])
+                    phrase_results[phrase]['is_phrase'] = is_phrase
+                    phrase_results[phrase]['whos'] = whos
+                    phrase_results[phrase]['whats'] = whats
+                    phrase_results[phrase]['wheres'] = wheres
+                    phrase_results[phrase]['whens'] = whens
+                    phrase_results[phrase]['whys'] = whys
+                call.phrase_results = json.dumps(phrase_results)
+                call.save()
+
+
+    if call.transcript:
+        transcript = json.loads(call.transcript)
+    else:
+        transcript = []
+    speakers = [call.recipient_name, call.caller_name]
+    transcript = add_speakers(transcript, speakers)
+    lines = generate_speaker_lines(sort_words(transcript))
+    audio_url = call.recording_url
+    print_phrases = {}
     bad_phrases = ['', ' ']
     if call.phrase_results:
         phrase_results = json.loads(call.phrase_results)
         phrases = json.loads(call.phrases)
         for phrase in phrase_results:
-            if phrase in bad_phrases:
+            if phrase in BAD_PHRASES:
                 continue
             print_phrases[phrase] = {'times':[]}
             #pdb.set_trace()
@@ -297,14 +364,12 @@ def backend_viewer(request, key):
                     stoptime = time - DEFAULT_PHRASE_TIME_SEC
                 confidence = phrase_results[phrase]['P'][i]
                 url = phrase_results[phrase]['slices'][i]
-                print(url)
-                print_phrases[phrase]['times'].append({'starttime' : starttime,
+                print_phrases[phrase]['times'].append({'keytime':time,
+                                                       'starttime' : starttime,
                                                        'stoptime' : stoptime,
                                                        'confidence': confidence,
                                                        'url': url,
                                                        'hex_confidence':confidence_to_hex(confidence)})
-    print("rendering with keywords")
-    print(keywords)
     return render(request, 'twilio_caller/backend_audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
                            "keywords":keywords, "phrases":print_phrases})
 
