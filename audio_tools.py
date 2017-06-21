@@ -142,12 +142,14 @@ def slice_wav_file(wav_file):
             sf.write(os.path.join(flac_dir, outfile), slice, rate)
     return flac_dir
 
-def cut_file(file, length_sec=10, out_file=None, split=False):
+def cut_file(file, start_time= 0, stop_time=10, out_file=None, split=False):
     rate, data = wavfile.read(file)
+    start_time = float(start_time)
+    stop_time = float(stop_time)
     if len(data.shape) > 1:
-        out = data[0:int(length_sec*rate), :]
+        out = data[int(start_time*rate):int(stop_time*rate), :]
     else:
-        out = data[0:int(length_sec*rate)]
+        out = data[int(start_time*rate):int(stop_time*rate)]
         channel = 0
     if split:
         for channel in range(0, out.shape[1]):

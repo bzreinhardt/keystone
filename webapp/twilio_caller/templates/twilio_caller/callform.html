@@ -66,7 +66,32 @@
         <br>
           Audio bookmarks separated by semicolons.<br>
           These phrases will generate notes. The entire audio will still be searchable:<br> <br>
-          <div><textarea name="phrases" rows="10" cols="100">action items; that's fascinating; make a note; </textarea> </div>
+          <div>
+              Key Phrases:
+              <div>
+                <input name="keyword_0" placeholder="Action Items" type="text">
+                <input name="keyword_0_pre" type="radio" value="before">Focus before keyword
+                <input name="keyword_0_post" type="radio" value="after" checked>Focus after keyword
+              </div>
+              <div>
+                <input name="kewowrd_1" placeholder="that's fascinating" type="text">
+                <input name="keyword_1_placement" type="radio" value="before" checked>Focus before keyword
+                <input name="keyword_1_placement" type="radio" value="after">Focus after keyword
+              </div>
+              <div>
+                <input name="kewowrd_2" placeholder="take a note" type="text">
+                <input name="keyword_2_placement" type="radio" value="before">Focus before keyword
+                <input name="keyword_2_placement" type="radio" value="after" checked>Focus after keyword
+              </div>
+              <div>
+                <input name="kewowrd_3" placeholder="remember that" type="text">
+                <input name="keyword_3_placement" type="radio" value="before" checked>Focus before keyword
+                <input name="keyword_3_placement" type="radio" value="after">Focus after keyword
+              </div>
+
+
+
+          </div>
         <br>
         Wonky: minimum acceptable confidence on audio search
         <div><input type=text name="min_confidence" value="0.3"></div>
