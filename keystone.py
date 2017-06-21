@@ -48,15 +48,16 @@ def confidence_to_hex(confidence):
     return '#FF' + format(int(confidence * 255), 'x') + format(int(confidence * 255), 'x')
 
 
-def generate_speaker_lines(words):
+def generate_speaker_lines(words, show_confidence=False):
     lines = []
     previous_speaker = -1
     current_line = {"words":[]}
 
     for i, word in enumerate(words):
-        if 'confidence' not in word:
+        if 'confidence' not in word or show_confidence is False:
             word['confidence'] = 1.0
-        word['hex_confidence'] = confidence_to_hex(word['confidence'])
+        else:
+            word['hex_confidence'] = confidence_to_hex(word['confidence'])
         if (previous_speaker != word['speaker'] and previous_speaker is not -1):
             current_line['speaker'] = previous_speaker
             lines.append(current_line)

@@ -143,9 +143,9 @@ function getSelectionText() {
 		return text;
 }
 
-function keywordSubmit() {
+function keywordSubmit(form_name) {
 	console.log('form submitted');
-	var key = $('#form_audio_key');
+	var key = $('#' + form_name + '_audio_key');
 	key.value = audio_key;
 	return true;
 }

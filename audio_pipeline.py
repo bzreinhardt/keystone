@@ -27,7 +27,7 @@ def run_audio_pipeline(recording_path, call,
                        do_transcripts=False,
                        create_clips=False,
                        phrases={},
-                       min_confidence=0.4):
+                       min_confidence=0.5):
     key = call.twilio_recording_sid
     base = path.basename(recording_path)
 
@@ -56,10 +56,31 @@ def run_audio_pipeline(recording_path, call,
             if test['error'] is None:
                 index_ready = True
 
-
+    if call.phrase_results:
+        results = json.loads(call.phrase_results)
+        for phrase in results:
+            if 'is_phrase' not in results[phrase]:
+                results[phrase]['is_phrase'] = [False]*len(results[phrase]['startTime'])
+            if 'whos' not in results[phrase]:
+                results[phrase]['whos'] = ['']*len(results[phrase]['startTime'])
+            if 'whats' not in results[phrase]:
+                results[phrase]['whats'] = ['']*len(results[phrase]['startTime'])
+            if 'wheres' not in results[phrase]:
+                results[phrase]['wheres'] = ['']*len(results[phrase]['startTime'])
+            if 'whens' not in results[phrase]:
+                results[phrase]['whens'] = ['']*len(results[phrase]['startTime'])
+            if 'whys' not in results[phrase]:
+                results[phrase]['whys'] = ['']*len(results[phrase]['startTime'])
+            for i, time in enumerate(results[phrase]['startTime']):
+                if any([len(x) > 0 for x in [results[phrase]['whos'][i],
+                                             results[phrase]['whats'][i],
+                                             results[phrase]['wheres'][i],
+                                             results[phrase]['whens'][i],
+                                             results[phrase]['whys'][i]]]):
+                    results[phrase]['is_phrase'][i] = True
+            call.save()
 
     if len(phrases) > 0:
-
 
         call.phrases = json.dumps(phrases)
         index_ready = False
@@ -68,23 +89,23 @@ def run_audio_pipeline(recording_path, call,
             if test['error'] is None:
                 index_ready = True
         phrase_times = {}
-        for phrase in phrases:
-            directory, file = path.split(recording_path)
-            name = file.split(".")[0]
-            charless_phrase = remove_bad_chars(phrase)
-            clip_dir = "%s/%s_%s_clips" % (directory, name, charless_phrase)
-            if not path.isdir(clip_dir):
-                mkdir(clip_dir)
 
+        for phrase in phrases:
             if len(phrase) == 0:
                 continue
             results = audio_search(call.audio_index_id, phrase, min_confidence=min_confidence)
             if len(results) > 0:
                 phrase_times[phrase] = results
-
+            # Create clips of just the relevant audio
             if create_clips:
-                clips = []
-                print('creating clips')
+                directory, file = path.split(recording_path)
+                name = file.split(".")[0]
+                charless_phrase = remove_bad_chars(phrase)
+                clip_dir = "%s/%s_%s_clips" % (directory, name, charless_phrase)
+                if not path.isdir(clip_dir):
+                    mkdir(clip_dir)
+
+                    print('creating clips')
 
                 for i, time in enumerate(results['startTime']):
 
@@ -98,9 +119,11 @@ def run_audio_pipeline(recording_path, call,
                     cut_file(recording_path, start_time=start_time,
                                              stop_time=stop_time,
                                              out_file=clip_file)
-            blob_names, urls = upload_folder(path.dirname(clip_dir), folder=path.basename(clip_dir), make_public=True)
-            phrase_times[phrase]['slices'] = urls
-            #shutil.rmtree(clip_dir)
+
+
+                blob_names, urls = upload_folder(path.dirname(clip_dir), folder=path.basename(clip_dir), make_public=True)
+                phrase_times[phrase]['slices'] = urls
+                shutil.rmtree(clip_dir)
 
         call.phrase_results = json.dumps(phrase_times)
         call.save()
@@ -146,5 +169,5 @@ if __name__=="__main__":
     call = TwilioCall.objects.get(twilio_recording_sid=args.twilio_id)
     import pdb
     pdb.set_trace()
-    run_audio_pipeline(args.file, call, phrases=DEFAULT_PHRASES, create_clips=True)
+    #run_audio_pipeline(args.file, call)
 

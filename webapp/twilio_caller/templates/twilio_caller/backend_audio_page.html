@@ -2,14 +2,14 @@
 <script type="text/javascript">
     var audio_key = "{{audio_key}}"
 </script>
-<audio id="master_audio" preload="auto" src = {{audio_url}}> 
+<audio id="master_audio" preload="auto" src = {{audio_url}} autoplay="0" autostart="0">
     <p> Your browser does not support the audio element </p> 
 </audio>
 /* phrases = [[phrase, clip_url, timestamp_in_master, confidence], [phrase, clip_url, timestamp_in_master, confidence], ...]
 */
 {% for phrase, values in phrases.items %}
     {% for value in values.times %}
-        <audio id="{{value.url}}" preload="auto" src = {{value.url}}>
+        <audio id="{{value.url}}" preload="auto" src = {{value.url}} autoplay="0" autostart="0">
             <p> Your browser does not support the audio element </p>
         </audio>
     {% endfor %}
@@ -18,17 +18,18 @@
 <h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
 <h3>Keyword Search:</h3>
 
- <form id="keyword" action="" method="POST" onsubmit="keywordSubmit();">
+ <form id="keyword" action="" method="POST" onsubmit="keywordSubmit('keyword');">
+    <input type="hidden" name="form_type" value="keyword"/>
+    <input type="hidden" name="audio_key" id="keyword_audio_key" value="{{audio_key}}"/>
 
             <div class="input text">
                 <label for="search-term">Search Term</label>
                 <input name="search-term" type="text" style="z-index: 2;">
             </div>
 
-            <input type="hidden" name="audio_key" id="form_audio_key" value="{{audio_key}}"/>
 
             <div class="input submit">
-                <input type="submit" value="Submit" />
+                <input type="submit" name="keyword-submit" value="Submit" />
             </div>
      {% csrf_token %}
 </form>
@@ -43,11 +44,21 @@
 
 <h3>Key Phrases:</h3>
 
+<form id="phrases" action="" method="POST" onsubmit="keywordSubmit('phrases');">
+    <input type="hidden" name="audio_key" id="phrases_audio_key" value="{{audio_key}}"/>
+    <input type="hidden" name="form_type" value="phrases"/>
 <table>
     <tr>
-        <th>Clip</th>
+
         <th>Play Keyword</th>
+        <th>Keyword Present</th>
         <th>Confidence</th>
+        <th>Clip</th>
+        <th>Who</th>
+        <th>What</th>
+        <th>Where</th>
+        <th>When</th>
+        <th>Why</th>
     </tr>
     {% for phrase, values in phrases.items %}
         <tr>
@@ -56,12 +67,25 @@
         {% for value in values.times %}
             <tr>
                 <th> <a onClick="setTime(0, '{{value.url}}');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
-                <th> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
+                <th> <input type="checkbox" name="{{phrase}}_{{value.keytime}}_exists" value="True"> </th>
                 <th> {{value.confidence}} </th>
+                <th> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
+
+
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_who"> </th>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_what"> </th>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_where"> </th>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_when"> </th>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_why"> </th>
             </tr>
         {% endfor %}
     {% endfor %}
 </table>
+    <div class="input submit">
+                <input type="submit" name="phrase-submit" value="Submit" />
+            </div>
+     {% csrf_token %}
+</form>
 
 
 <br>
