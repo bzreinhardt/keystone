@@ -1,6 +1,7 @@
 import math
 import sys
 import re
+import requests
 
 def progress_bar(current_val, max_val, fraction=1, text=""):
     percent_done = int(float(current_val)/float(max_val)*100.)
@@ -35,5 +36,19 @@ def phone_number_parser(phone_number):
     if len(number) is 10:
         number = "1" + number
     return number
+
+def send_simple_message(to='bzreinhardt@gmail.com', subject='evoke notification!', text='no text entered'):
+    return requests.post(
+        "https://api.mailgun.net/v3/sandbox0999fe079ff549b2bddaaa6e2c81ec2a.mailgun.org/messages",
+        auth=("api", "key-180e3e48d159f0bc57fc104e291a2417"),
+        data={"from": "Mailgun Sandbox <postmaster@sandbox0999fe079ff549b2bddaaa6e2c81ec2a.mailgun.org>",
+        "to": to,
+        "subject": subject,
+        "text":text})
+
+def remove_bad_chars(str):
+    pattern = re.compile('[\W_]+')
+    return pattern.sub('', str)
+
 
 

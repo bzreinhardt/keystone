@@ -71,7 +71,7 @@ def get_indexing_status(content_id):
 
 
 
-def audio_search(content_id, query, min_confidence=DEFAULT_MIN_CONFIDENCE, max_returns=DEFAULT_MAX_RETURNS):
+def audio_search(content_id, query, min_confidence=DEFAULT_MIN_CONFIDENCE, max_returns=DEFAULT_MAX_RETURNS, sort_field="P"):
     """
     
     :param content_id: deepgram id string
@@ -79,13 +79,20 @@ def audio_search(content_id, query, min_confidence=DEFAULT_MIN_CONFIDENCE, max_r
     :return: dictionary of lists - {"snippet", "P", "endTime", "startTime", "N", "error")
     """
     data = {"action": "object_search", "userID": DEEPGRAM_KEY, "contentID": content_id,
-            "query": query, "snippet": True, "filter": {"Nmax": max_returns, "Pmin": min_confidence}, "sort": "time"}
+            "query": query, "snippet": False, "filter": {"Nmax": max_returns, "Pmin": min_confidence}, "sort": "time"}
 
     status = requests.post(DEEPGRAM_URL, headers=headers, data=json.dumps(data))
     # will return error if it's not indexed yet
     out = json.loads(status.text)
     if "error" not in out:
         out["error"] = None
+        # Sort by whatever field you want
+        sort_array = out[sort_field]
+        for field in out.keys():
+            if field == "error":
+                continue
+            copy_sort_array = sort_array
+            out[field] = [x for (y,x) in sorted(zip(copy_sort_array, out[field]), reverse=True)]
     return out
 
 def phrase_search(content_id, phrase):

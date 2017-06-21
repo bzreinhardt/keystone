@@ -1,8 +1,19 @@
 {% extends "twilio_caller/header.html" %} {% block body %}<body>
-<script type="text/javascript"> var audio_key = "{{audio_key}}" </script>
+<script type="text/javascript">
+    var audio_key = "{{audio_key}}"
+</script>
 <audio id="master_audio" preload="auto" src = {{audio_url}}> 
     <p> Your browser does not support the audio element </p> 
 </audio>
+/* phrases = [[phrase, clip_url, timestamp_in_master, confidence], [phrase, clip_url, timestamp_in_master, confidence], ...]
+*/
+{% for phrase, values in phrases.items %}
+    {% for value in values.times %}
+        <audio id="{{value.url}}" preload="auto" src = {{value.url}}>
+            <p> Your browser does not support the audio element </p>
+        </audio>
+    {% endfor %}
+{% endfor %}
 <br>
 <h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
 <h3>Keyword Search:</h3>
@@ -29,14 +40,30 @@
     {% endfor %}
 {% endif %}
 <br>
+
 <h3>Key Phrases:</h3>
-{% for phrase, values in phrases.items %}
-    <br>
-    {{phrase}}:
-    {% for value in values.times %}
-    <a onClick="setTime({{value.time}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{value.confidence}}"> {{value.time}} </a> <br>
+
+<table>
+    <tr>
+        <th>Clip</th>
+        <th>Play Keyword</th>
+        <th>Confidence</th>
+    </tr>
+    {% for phrase, values in phrases.items %}
+        <tr>
+            <th>{{phrase}}</th>
+        </tr>
+        {% for value in values.times %}
+            <tr>
+                <th> <a onClick="setTime(0, '{{value.url}}');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
+                <th> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
+                <th> {{value.confidence}} </th>
+            </tr>
+        {% endfor %}
     {% endfor %}
-{% endfor %}
+</table>
+
+
 <br>
 {% for line in lines %}
 {{line.speaker}} :
@@ -48,5 +75,14 @@
   </body>
 {% load static from staticfiles %}
 <script src="{% static '/js/mindstone_ui.js' %}"></script>
+<script>
+    {% for phrase, values in phrases.items %}
+        {% for value in values.times %}
+            var phrase_elem = document.getElementById('{{value.url}}');
+            phrase_elem.addEventListener("canplaythrough", function() {this.play();});
+            audios['{{value.url}}'] = phrase_elem;
+        {% endfor %}
+    {% endfor %}
+</script>
 </html>
 {% endblock %}

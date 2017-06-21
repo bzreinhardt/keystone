@@ -21,6 +21,7 @@ import multiprocessing
 import keystone
 import pdb
 import time
+from urllib.parse import unquote
 #from credentials import credentials
 
 FILE_NAME = "ES2016a.Mix-Headset"
@@ -36,8 +37,17 @@ MAX_CLIENTS = 15
 # AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "french.aiff")
 # AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "chinese.flac")
 
+def make_blob_public(bucket_name, blob_name):
+    """Makes a blob publicly accessible."""
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(blob_name)
 
-def upload_folder(root, folder='', bucket_name='illiad-audio'):
+    blob.make_public()
+    return blob.public_url
+
+
+def upload_folder(root, folder='', bucket_name='illiad-audio', make_public=False):
     """
     Uploads a folder to google cloud storage
     :param path: path to the folder 
@@ -47,6 +57,7 @@ def upload_folder(root, folder='', bucket_name='illiad-audio'):
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
     blob_names = []
+    urls = []
     files = os.listdir(os.path.join(root,folder))
     for i, file in enumerate(files):
         progress_bar(i, len(files), text="uploading file:")
@@ -55,19 +66,14 @@ def upload_folder(root, folder='', bucket_name='illiad-audio'):
         with open(os.path.join(root, folder, file), 'rb') as f:
             blob.upload_from_file(f)
         blob_names.append("gs://%s/%s"%(bucket_name, blob_name))
-    return blob_names
+        if make_public:
+            blob.make_public()
+            urls.append(unquote(blob.public_url))
+        ##pdb.set_trace()
+    return blob_names, urls
 
 
-def make_blob_public(bucket_name, blob_name):
-    """Makes a blob publicly accessible."""
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
-    blob = bucket.blob(blob_name)
 
-    blob.make_public()
-
-    print('Blob {} is publicly accessible at {}'.format(
-        blob.name, blob.public_url))
 
 
 def wav_to_flac(audio_file, duration=None, stereo_to_mono=False):

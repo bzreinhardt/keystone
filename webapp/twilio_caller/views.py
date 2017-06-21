@@ -23,7 +23,8 @@ import requests
 from google.cloud import storage
 
 from twilio_caller.models import TwilioCall
-from utility import phone_number_parser
+from utility import phone_number_parser, send_simple_message
+from audio_pipeline import run_audio_pipeline
 
 # TODO: https://stackoverflow.com/a/3856947/554487
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
@@ -40,6 +41,8 @@ UPLOAD_ORIGINAL = True
 DO_TRANSCRIPTS = True
 DO_INDEXING = True
 DO_PHRASE_DETECTION = True
+NUM_KEYWORDS = 4
+DEFAULT_PHRASE_TIME_SEC=15
 
 class ReusableForm(forms.Form):
     name = forms.CharField(label='Name:', max_length=100)
@@ -60,7 +63,15 @@ def call(request):
         recipient_number=phone_number_parser(request.POST['recipient-number']))
     call.save()
 
-    phrases = request.POST['phrases'].split(";")
+    #Grab the Phrases
+    phrases = {}
+    for i in range(0, NUM_KEYWORDS):
+        phrase = request.POST['keyword_%d'%i]
+        if request.POST['keyword_%d'%i] == 'before':
+            phrases[phrase] = {'type':'before'}
+        else:
+            phrases[phrase] = {'type':'after'}
+
     call.phrases = json.dumps(phrases)
 
 
@@ -114,84 +125,6 @@ def connect(request, call_id):
         return HttpResponseNotFound('error: call not found.')
     call.begin_call()
     return render(request, 'twilio_caller/call.xml', { 'call': call })
-
-
-def send_simple_message(to='bzreinhardt@gmail.com', subject='evoke notification!', text='no text entered'):
-    return requests.post(
-        "https://api.mailgun.net/v3/sandbox0999fe079ff549b2bddaaa6e2c81ec2a.mailgun.org/messages",
-        auth=("api", "key-180e3e48d159f0bc57fc104e291a2417"),
-        data={"from": "Mailgun Sandbox <postmaster@sandbox0999fe079ff549b2bddaaa6e2c81ec2a.mailgun.org>",
-        "to": to,
-        "subject": subject,
-        "text":text})
-
-
-def run_audio_pipeline(recording_path, call, upload_original=False,
-                       do_indexing=False, do_transcripts=False, phrases=[],
-                       min_confidence=0.4):
-    key = call.twilio_recording_sid
-    base = path.basename(recording_path)
-
-    client = storage.Client()
-    bucket = client.get_bucket('illiad-audio')
-
-    if upload_original:# and call.recording_url is '':
-        print("Uploading original file to cloud")
-        blob = bucket.blob(base)
-        with open(recording_path, 'rb') as f:
-            blob.upload_from_file(f)
-        # TODO: need to figure out secure way of actually doing this
-        blob.make_public()
-        url = blob.public_url
-        call.recording_url = url
-        call.save()
-
-    if do_indexing:# and call.audio_index_id is '':
-        print("Indexing file")
-        deepgram_id = index_audio_url(call.recording_url)
-        call.audio_index_id = deepgram_id
-        call.save()
-        index_ready = False
-        while not index_ready:
-            test = audio_search(call.audio_index_id, 'test')
-            if test['error'] is None:
-                index_ready = True
-        if len(phrases) > 0:
-            phrase_times = {}
-            for phrase in phrases:
-                if len(phrase) == 0:
-                    continue
-                times = audio_search(call.audio_index_id, phrase, min_confidence=min_confidence)
-                if len(times) > 0:
-                    phrase_times[phrase] = times
-            call.phrase_results = json.dumps(phrase_times)
-            call.save()
-
-    if do_transcripts:
-        # TODO: delete original from local filesystem
-        print("slicing file")
-        slice_dir = audio_tools.slice_wav_file(recording_path)
-        print("uploading sliced folder")
-        blob_names = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
-        print("done uploading slices, finding transcript")
-        words = transcribe_in_parallel(blob_names, name=key)
-        print('------ transcription ------')
-        pprint(words)
-        # TODO: delete slices from server
-        print("uploading transcript to gcloud")
-        transcript_blob = bucket.blob("{}_transcript.json".format(key))
-        transcript_blob.upload_from_string(json.dumps(words))
-        print("done uploading transcript")
-        call.transcript = json.dumps(words)
-        call.save()
-
-    print("FINISHED CALL %s" % key)
-    display_url = "%s/alpha/viewer/%s/"%("www.evoke.ai", call.twilio_recording_sid)
-    email_text = "Finished processing audio for %s. Results are available at %s" % (call.caller_name, display_url)
-    send_simple_message(subject='audio pipeline complete!', text= email_text )
-    if call.caller_email:
-        send_simple_message(to=call.caller_email, subject='Evokation Complete!', text=email_text)
-    return (True, key)
 
 
 
@@ -311,6 +244,102 @@ def viewer(request, key):
     print(keywords)
     return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
                            "keywords":keywords, "phrases":phrases})
+
+
+def backend_viewer(request, key):
+    keywords = {}
+    transcript_type = request.GET.get('transcript_type','transcript')
+    call = TwilioCall.objects.get(twilio_recording_sid=key)
+    content_id = call.audio_index_id
+    if request.method == "POST":
+        keyword = request.POST['search-term']
+        print("searching for %s"%keyword)
+        keyword_results = audio_search(content_id, keyword)
+        print("got keyword results")
+        print(keyword_results)
+        print("deepgram ID:")
+        print(content_id)
+        if keyword_results['error']:
+            keywords['0'] = {}
+            keywords['0']['starttime'] = 'Sorry, we are still crunching your conversation. Check back in a minute'
+        elif len(keyword_results['P']) == 0:
+            keywords['0'] = {}
+            keywords['0']['starttime'] = "No Results"
+        else:
+            for i, confidence in enumerate(keyword_results['P']):
+                keywords[str(i)] = {}
+                keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
+                keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
+    if call.transcript:
+        transcript = json.loads(call.transcript)
+    else:
+        transcript = []
+    speakers = [call.recipient_name, call.caller_name]
+    transcript = add_speakers(transcript, speakers)
+    lines = generate_speaker_lines(sort_words(transcript))
+    audio_url = call.recording_url
+    print_phrases = {}
+    bad_phrases = ['', ' ']
+    if call.phrase_results:
+        phrase_results = json.loads(call.phrase_results)
+        phrases = json.loads(call.phrases)
+        for phrase in phrase_results:
+            if phrase in bad_phrases:
+                continue
+            print_phrases[phrase] = {'times':[]}
+            #pdb.set_trace()
+            for i, time in enumerate(phrase_results[phrase]['startTime']):
+                if phrases[phrase]['type']=='before':
+                    starttime = time - DEFAULT_PHRASE_TIME_SEC
+                    stoptime = time
+                else:
+                    starttime = time
+                    stoptime = time - DEFAULT_PHRASE_TIME_SEC
+                confidence = phrase_results[phrase]['P'][i]
+                url = phrase_results[phrase]['slices'][i]
+                print(url)
+                print_phrases[phrase]['times'].append({'starttime' : starttime,
+                                                       'stoptime' : stoptime,
+                                                       'confidence': confidence,
+                                                       'url': url,
+                                                       'hex_confidence':confidence_to_hex(confidence)})
+    print("rendering with keywords")
+    print(keywords)
+    return render(request, 'twilio_caller/backend_audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
+                           "keywords":keywords, "phrases":print_phrases})
+
+def clip_viewer(request, key):
+    call = TwilioCall.objects.get(twilio_recording_sid=key)
+    speakers = [call.recipient_name, call.caller_name]
+    transcript = add_speakers(transcript, speakers)
+    lines = generate_speaker_lines(sort_words(transcript))
+    audio_url = call.recording_url
+    print_phrases = {}
+    bad_phrases = ['', ' ']
+    if call.phrase_results:
+        phrase_results = json.loads(call.phrase_results)
+        phrases = json.loads(call.phrases)
+        for phrase in phrase_results:
+            if phrase in bad_phrases:
+                continue
+            print_phrases[phrase] = {'times': []}
+            # pdb.set_trace()
+            for i, time in enumerate(phrase_results[phrase]['startTime']):
+                if phrases[phrase]['type'] == 'before':
+                    starttime = time - DEFAULT_PHRASE_TIME_SEC
+                    stoptime = time
+                else:
+                    starttime = time
+                    stoptime = time - DEFAULT_PHRASE_TIME_SEC
+
+                print_phrases[phrase]['times'].append({'starttime': starttime,
+                                                       'stoptime': stoptime,
+                                                       'confidence': confidence_to_hex(phrase_results[phrase]['P'][i])})
+    print("rendering with keywords")
+    print(keywords)
+    return render(request, 'twilio_caller/backend_audio_page.html',
+                  {"lines": lines, "audio_key": key, "audio_url": audio_url,
+                   "keywords": keywords, "phrases": print_phrases})
 
 
 def simple_upload(request):
