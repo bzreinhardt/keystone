@@ -68,7 +68,7 @@ def call(request):
     #Grab the Phrases
     phrases = {}
     for i in range(0, NUM_KEYWORDS):
-        if 'keyword_%d' in request.POST:
+        if 'keyword_%d'%i in request.POST:
             phrase = request.POST['keyword_%d'%i]
             if request.POST['keyword_%d'%i] == 'before':
                 phrases[phrase] = {'type':'before'}
