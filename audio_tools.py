@@ -142,10 +142,38 @@ def slice_wav_file(wav_file):
             sf.write(os.path.join(flac_dir, outfile), slice, rate)
     return flac_dir
 
+def slice_file(file):
+    rate, data = sf.read(file)
+    if len(data.shape) == 1:
+        data = np.vstack((data,data)).T
+
+    all_midpoints, all_startpoints = find_divisions(data, SILENCE, rate)
+    print("Number of found midpoints is \n"
+          "channel1: %d \n"
+          "channel2: %d \n" % (len(all_midpoints[0]), len(all_midpoints[1])))
+    directory, file = os.path.split(file)
+    name = file.split(".")[0]
+    flac_dir = "%s/%s_split" % (directory, name)
+    if not os.path.isdir(flac_dir):
+        os.mkdir(flac_dir)
+
+    for i, channel in enumerate(all_midpoints):
+
+        for j, pair in enumerate(zip([0] + channel, channel + [data.shape[0]])):
+            slice = data[pair[0]:pair[1], i]
+            startpoint = all_startpoints[i][j]
+            time_in_sec = float(startpoint) / float(rate)
+            outfile = encode_filename(name, channel=i, timestamp=time_in_sec, extension="flac")
+            progress_bar(j, len(channel)+1, "writing flac file: ")
+            sf.write(os.path.join(flac_dir, outfile), slice, rate)
+    return flac_dir
+
 def cut_file(file, start_time= 0, stop_time=10, out_file=None, split=False):
-    rate, data = wavfile.read(file)
+    #pdb.set_trace()
+    data, rate = sf.read(file)
     start_time = float(start_time)
     stop_time = float(stop_time)
+    extension = file.split(".")[-1]
     if len(data.shape) > 1:
         out = data[int(start_time*rate):int(stop_time*rate), :]
     else:
@@ -155,12 +183,12 @@ def cut_file(file, start_time= 0, stop_time=10, out_file=None, split=False):
         for channel in range(0, out.shape[1]):
 
             out_split = out[:, channel]
-            out_file = (os.path.basename(file)).split(".")[0] + "_%d_sec_channel_%d.wav"%(length_sec, channel)
+            out_file = (os.path.basename(file)).split(".")[0] + "_%d_sec_channel_%d.%s"%(length_sec, channel, extension)
             out_file = os.path.join(os.path.dirname(file), out_file)
             sf.write(out_file, out_split, rate)
     else:
         if not out_file:
-            out_file = (os.path.basename(file)).split(".")[0] + "_%d_sec_channel_%d.wav" % (length_sec, channel)
+            out_file = (os.path.basename(file)).split(".")[0] + "_%d_sec_channel_%d.%s" % (length_sec, channel, extension)
             out_file = os.path.join(os.path.dirname(file), out_file)
         sf.write(out_file, out, rate)
 

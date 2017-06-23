@@ -10,6 +10,7 @@ from utility import send_simple_message, remove_bad_chars
 import argparse
 import shutil
 from audio_tools import cut_file
+import pdb
 
 
 DEFAULT_PHRASES = {
@@ -116,6 +117,7 @@ def run_audio_pipeline(recording_path, call,
                         start_time = time
                         stop_time = time + DEFAULT_PHRASE_LENGTH_SEC
                     clip_file = "%s/%s_%d.wav"%(clip_dir, charless_phrase, i)
+                    #pdb.set_trace()
                     cut_file(recording_path, start_time=start_time,
                                              stop_time=stop_time,
                                              out_file=clip_file)
@@ -123,7 +125,7 @@ def run_audio_pipeline(recording_path, call,
 
                 blob_names, urls = upload_folder(path.dirname(clip_dir), folder=path.basename(clip_dir), make_public=True)
                 phrase_times[phrase]['slices'] = urls
-                shutil.rmtree(clip_dir)
+                #shutil.rmtree(clip_dir)
 
         call.phrase_results = json.dumps(phrase_times)
         call.save()
@@ -133,9 +135,11 @@ def run_audio_pipeline(recording_path, call,
     if do_transcripts:
         # TODO: delete original from local filesystem
         print("Slicing audio")
+
         slice_dir = audio_tools.slice_wav_file(recording_path)
         print("uploading sliced folder")
-        blob_names = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
+        blob_names, urls = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
+        pdb.set_trace()
         print("done uploading slices, finding transcript")
         words = transcribe_in_parallel(blob_names, name=key)
         print('------ transcription ------')
@@ -159,15 +163,36 @@ def run_audio_pipeline(recording_path, call,
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('twilio_id')
+    #parser.add_argument('twilio_id')
     parser.add_argument('--file', default='')
+
+
     args = parser.parse_args()
     environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.settings")
     import django
     django.setup()
     from twilio_caller.models import TwilioCall
-    call = TwilioCall.objects.get(twilio_recording_sid=args.twilio_id)
-    import pdb
+
+    #call = TwilioCall.objects.create(
+    #    caller_name='Ben',
+    #    caller_email='bzreinhardt@gmail.com',
+    #    caller_number='15137033332',
+    #    recipient_name='Mom',
+    #    recipient_email='cherylsreinhardt@gmail.com',
+    #    recipient_number='19199332882')
+    #call.save()
+
+    #call.twilio_recording_sid = 'mom_beej_test'
+    call = TwilioCall.objects.get(twilio_recording_sid='ben_mom_test')
     pdb.set_trace()
+    run_audio_pipeline(args.file, call, upload_original=False,
+                       do_indexing=False,
+                       do_transcripts=False,
+                       create_clips=True,
+                       phrases=DEFAULT_PHRASES,
+                       min_confidence=0.4)
+
+    #import pdb
+    #pdb.set_trace()
     #run_audio_pipeline(args.file, call)
 
