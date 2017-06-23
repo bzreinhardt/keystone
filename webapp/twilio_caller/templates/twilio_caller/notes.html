@@ -1,0 +1,59 @@
+<html>
+
+  <head>
+    <title>Call with {{ participants }} on {{ date }}</title>
+    <style type="text/css">
+      body {
+      font-family: Helvetica;
+      }
+      h1 {
+        background-color: purple;
+        background: radial-gradient(ellipse at center, #7514ce 0%, #480488 100%);
+        color: white;
+        margin: 0;
+        margin-bottom: 20px;
+        padding: 20px;
+      }
+      h1 .call-with, h1 .on {
+        font-weight: 200;
+        font-style: italic;
+      }
+      h1 .participants, h1 .date {
+        font-weight: bold;
+      }
+      h2, ul {
+        margin: 10px 20px;
+        color: #333;
+      }
+      ul {
+        padding-bottom: 2em;
+      }
+      .wrapper {
+        width: 800px;
+        border: 1px solid #aaa;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px #ccc;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <h1>
+        <span class="call-with">Call with</span>
+        <span class="participants">{{ participants }}</span>
+        <span class="on">on</span>
+        <span class="date">{{ date }}</span>
+      </h1>
+      {% for phrase in phrases %}
+      <h2>{{ phrase.text.capitalize }}</h2>
+      <ul>
+        {% for item in phrase.items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+      {% endfor %}
+    </div>
+  </body>
+</html>

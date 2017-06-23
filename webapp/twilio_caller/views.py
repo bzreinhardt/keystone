@@ -38,7 +38,7 @@ twilio = Twilio(environ.get('TWILIO_ACCOUNT_SID'),
                 environ.get('TWILIO_AUTH_TOKEN'))
 
 UPLOAD_ORIGINAL = True
-DO_TRANSCRIPTS = True
+DO_TRANSCRIPTS = False
 DO_INDEXING = True
 DO_PHRASE_DETECTION = True
 NUM_KEYWORDS = 4
@@ -102,7 +102,7 @@ def call(request):
         success, key = run_audio_pipeline(filename, call,
                                           do_indexing=True,
                                           upload_original=True,
-                                          do_transcripts=generate_transcript,
+                                          do_transcripts=False,
                                           phrases=phrases)
         call.call_end = timezone.now()
         call.state = call.CALL_FINISHED
@@ -170,8 +170,9 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
                                           call,
                                           do_indexing=True,
                                           upload_original=True,
-                                          do_transcripts=True,
-                                          phrases=json.loads(call.phrases))
+                                          do_transcripts=False,
+                                          phrases=json.loads(call.phrases),
+                                          min_confidence=0.4)
         if success:
             unlink(recording_path)
 
@@ -197,6 +198,24 @@ def status(request, call_id):
         return HttpResponseNotFound('error: call not found.')
     return render(request, 'twilio_caller/status.html', { 'call': call })
 
+def notes(request, call_id):
+    call = TwilioCall.objects.get(id=call_id)
+    if call is None:
+        return HttpResponseNotFound('error: call not found.')
+
+    phrases = [{'text': k, 'items': []} for k in json.loads(call.phrases).keys()]
+    keywords = json.loads(call.phrase_results)
+    for phrase in phrases:
+        from pprint import pprint
+        note = keywords[phrase['text']].get('note')
+        if note:
+            phrase['items'].append(note)
+
+    return render(request, 'twilio_caller/notes.html', {
+        'participants': 'Ben and Noah',
+        'date': call.call_begin.strftime('%a %d %b %Y'),
+        'phrases': phrases,
+        })
 
 def viewer(request, key, show_confidence=None):
     keywords = {}
@@ -298,7 +317,6 @@ def backend_viewer(request, key):
                     keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
                     keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
         elif 'phrase-submit' in request.POST:
-
             if call.phrase_results:
                 print("got phrase post")
                 phrase_results = json.loads(call.phrase_results)
@@ -313,7 +331,6 @@ def backend_viewer(request, key):
                     whens = []
                     whys = []
                     for time in phrase_results[phrase]['startTime']:
-
                         if "%s_%s_exists" % (phrase, time) in request.POST:
                             is_phrase.append(request.POST["%s_%s_exists" % (phrase, time)] == 'True')
                         else:
@@ -357,7 +374,7 @@ def backend_viewer(request, key):
             print_phrases[phrase] = {'times':[]}
             #pdb.set_trace()
             for i, time in enumerate(phrase_results[phrase]['startTime']):
-                if phrases[phrase]['type']=='before':
+                if phrases[phrase]['type'] == 'before':
                     starttime = time - DEFAULT_PHRASE_TIME_SEC
                     stoptime = time
                 else:
@@ -371,8 +388,9 @@ def backend_viewer(request, key):
                                                        'confidence': confidence,
                                                        'url': url,
                                                        'hex_confidence':confidence_to_hex(confidence)})
-    return render(request, 'twilio_caller/backend_audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
-                           "keywords":keywords, "phrases":print_phrases})
+    return render(request, 'twilio_caller/backend_audio_page.html', {
+        "lines": lines, "audio_key": key, "audio_url": audio_url,
+        "keywords": keywords, "phrases": print_phrases})
 
 def clip_viewer(request, key):
     call = TwilioCall.objects.get(twilio_recording_sid=key)

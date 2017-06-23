@@ -42,9 +42,9 @@ def send_simple_message(to='bzreinhardt@gmail.com', subject='evoke notification!
         "https://api.mailgun.net/v3/sandbox0999fe079ff549b2bddaaa6e2c81ec2a.mailgun.org/messages",
         auth=("api", "key-180e3e48d159f0bc57fc104e291a2417"),
         data={"from": "Mailgun Sandbox <postmaster@sandbox0999fe079ff549b2bddaaa6e2c81ec2a.mailgun.org>",
-        "to": to,
-        "subject": subject,
-        "text":text})
+              "to": to,
+              "subject": subject,
+              "text":text})
 
 def remove_bad_chars(str):
     pattern = re.compile('[\W_]+')
