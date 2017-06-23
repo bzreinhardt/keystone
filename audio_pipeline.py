@@ -10,7 +10,6 @@ from utility import send_simple_message, remove_bad_chars
 import argparse
 import shutil
 from audio_tools import cut_file
-import pdb
 
 
 DEFAULT_PHRASES = {
@@ -117,7 +116,6 @@ def run_audio_pipeline(recording_path, call,
                         start_time = time
                         stop_time = time + DEFAULT_PHRASE_LENGTH_SEC
                     clip_file = "%s/%s_%d.wav"%(clip_dir, charless_phrase, i)
-                    #pdb.set_trace()
                     cut_file(recording_path, start_time=start_time,
                                              stop_time=stop_time,
                                              out_file=clip_file)
@@ -125,7 +123,7 @@ def run_audio_pipeline(recording_path, call,
 
                 blob_names, urls = upload_folder(path.dirname(clip_dir), folder=path.basename(clip_dir), make_public=True)
                 phrase_times[phrase]['slices'] = urls
-                #shutil.rmtree(clip_dir)
+                shutil.rmtree(clip_dir)
 
         call.phrase_results = json.dumps(phrase_times)
         call.save()
@@ -139,7 +137,6 @@ def run_audio_pipeline(recording_path, call,
         slice_dir = audio_tools.slice_wav_file(recording_path)
         print("uploading sliced folder")
         blob_names, urls = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
-        pdb.set_trace()
         print("done uploading slices, finding transcript")
         words = transcribe_in_parallel(blob_names, name=key)
         print('------ transcription ------')
@@ -184,7 +181,6 @@ if __name__=="__main__":
 
     #call.twilio_recording_sid = 'mom_beej_test'
     call = TwilioCall.objects.get(twilio_recording_sid='ben_mom_test')
-    pdb.set_trace()
     run_audio_pipeline(args.file, call, upload_original=False,
                        do_indexing=False,
                        do_transcripts=False,
@@ -192,7 +188,5 @@ if __name__=="__main__":
                        phrases=DEFAULT_PHRASES,
                        min_confidence=0.4)
 
-    #import pdb
-    #pdb.set_trace()
     #run_audio_pipeline(args.file, call)
 
