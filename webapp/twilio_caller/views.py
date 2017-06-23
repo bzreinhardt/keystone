@@ -232,7 +232,9 @@ def viewer(request, key, show_confidence=None):
     audio_url = call.recording_url
     print_phrases = {}
     if call.phrase_results:
+
         phrase_results = json.loads(call.phrase_results)
+
         phrases = json.loads(call.phrases)
         for phrase in phrase_results:
             if phrase in BAD_PHRASES:
@@ -260,12 +262,16 @@ def viewer(request, key, show_confidence=None):
                            'confidence': confidence,
                            'url': url,
                            'hex_confidence':hex_confidence}
+
+                if 'notes' in phrase_results[phrase]:
+                    out_dict['note'] = phrase_results[phrase]['notes'][i]
                 for question in ['who', 'what', 'where', 'when', 'why']:
                     if question+"s" in phrase_results[phrase]:
                         if len(phrase_results[phrase][question+"s"][i]) > 0:
                             out_dict[question] = phrase_results[phrase][question+"s"][i]
 
                 print_phrases[phrase]['times'].append(out_dict)
+
     return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
                            "keywords":keywords, "phrases":print_phrases})
 
@@ -312,12 +318,15 @@ def backend_viewer(request, key):
                     wheres = []
                     whens = []
                     whys = []
+                    notes = []
                     for time in phrase_results[phrase]['startTime']:
-
                         if "%s_%s_exists" % (phrase, time) in request.POST:
                             is_phrase.append(request.POST["%s_%s_exists" % (phrase, time)] == 'True')
                         else:
                             is_phrase.append(False)
+                        if "%s_%s_note" % (phrase, time) in request.POST:
+
+                            notes.append(request.POST["%s_%s_note" % (phrase, time)])
                         if "%s_%s_who" % (phrase, time) in request.POST:
                             whos.append(request.POST["%s_%s_who" % (phrase, time)])
                         if "%s_%s_what" % (phrase, time) in request.POST:
@@ -329,11 +338,13 @@ def backend_viewer(request, key):
                         if "%s_%s_why" % (phrase, time) in request.POST:
                             whys.append(request.POST["%s_%s_why" % (phrase, time)])
                     phrase_results[phrase]['is_phrase'] = is_phrase
+                    phrase_results[phrase]['notes'] = notes
                     phrase_results[phrase]['whos'] = whos
                     phrase_results[phrase]['whats'] = whats
                     phrase_results[phrase]['wheres'] = wheres
                     phrase_results[phrase]['whens'] = whens
                     phrase_results[phrase]['whys'] = whys
+
                 call.phrase_results = json.dumps(phrase_results)
                 call.save()
 
