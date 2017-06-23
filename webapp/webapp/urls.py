@@ -16,13 +16,30 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.views.generic import RedirectView
 from django.contrib import admin
-from django.shortcuts import redirect
+from django.http import HttpResponse
+
+from django.shortcuts import redirect, render
+
+TEMP_REQUEST = "<!DOCTYPE html>" \
+               "<html lang=\"en\">" \
+               "<head>" \
+                "<meta charset=\"UTF-8\">" \
+                "<meta name=\"google-site-verification\" content=\"KkcS7ywkOKU7QpbY---fTiNGrYzAbbCYLSQ11TfvBjI\" />" \
+                "<title>Evoke</title>" \
+                "hello!" \
+                "</head>" \
+                "<body>" \
+                "</body>" \
+                "</html>"
 
 #def index_redirect(request):
 #    return redirect('/twilio_caller/', permanent=False)
 
+def temp_index(request):
+    return HttpResponse(TEMP_REQUEST)
+
 urlpatterns = [
-    #url(r'^$', index_redirect),
+    url(r'^$', temp_index),
     url(r'^alpha/', include('twilio_caller.urls')),
     url(r'^admin/', admin.site.urls),
 ]

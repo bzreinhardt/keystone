@@ -67,6 +67,9 @@ def upload_folder(root, folder='', bucket_name='illiad-audio', make_public=False
             blob.upload_from_file(f)
         blob_names.append("gs://%s/%s"%(bucket_name, blob_name))
         if make_public:
+            print("making %d public"%i)
+            ##if i == 4:
+            #    pdb.set_trace()
             blob.make_public()
             urls.append(unquote(blob.public_url))
         ##pdb.set_trace()
