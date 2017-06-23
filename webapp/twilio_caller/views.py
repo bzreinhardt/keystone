@@ -171,6 +171,7 @@ class ProcessRecordingAfterHttpResponse(HttpResponse):
                                           do_indexing=True,
                                           upload_original=True,
                                           do_transcripts=False,
+                                          create_clips=True,
                                           phrases=json.loads(call.phrases),
                                           min_confidence=0.4)
         if success:
@@ -203,13 +204,10 @@ def notes(request, call_id):
     if call is None:
         return HttpResponseNotFound('error: call not found.')
 
-    phrases = [{'text': k, 'items': []} for k in json.loads(call.phrases).keys()]
     keywords = json.loads(call.phrase_results)
-    for phrase in phrases:
-        from pprint import pprint
-        note = keywords[phrase['text']].get('note')
-        if note:
-            phrase['items'].append(note)
+    phrases = [{'text': k,
+                'items': list(filter(None, keywords[k].get('notes', [])))}
+               for k in json.loads(call.phrases).keys()]
 
     return render(request, 'twilio_caller/notes.html', {
         'participants': 'Ben and Noah',
