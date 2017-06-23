@@ -66,10 +66,11 @@
         </tr>
         {% for value in values.times %}
             <tr>
-                <th> <a onClick="setTime(0, '{{value.url}}');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
+                <th> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
                 <th> <input type="checkbox" name="{{phrase}}_{{value.keytime}}_exists" value="True"> </th>
                 <th> {{value.confidence}} </th>
-                <th> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
+
+                <th> <a onClick="setTime(0, '{{value.url}}');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
 
 
                 <th> <input type="text" name="{{phrase}}_{{value.keytime}}_who"> </th>
