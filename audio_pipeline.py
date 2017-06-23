@@ -123,7 +123,7 @@ def run_audio_pipeline(recording_path, call,
 
                 blob_names, urls = upload_folder(path.dirname(clip_dir), folder=path.basename(clip_dir), make_public=True)
                 phrase_times[phrase]['slices'] = urls
-                #shutil.rmtree(clip_dir)
+                shutil.rmtree(clip_dir)
 
         call.phrase_results = json.dumps(phrase_times)
         call.save()
@@ -188,7 +188,5 @@ if __name__=="__main__":
                        phrases=DEFAULT_PHRASES,
                        min_confidence=0.4)
 
-    #import pdb
-    #pdb.set_trace()
     #run_audio_pipeline(args.file, call)
 

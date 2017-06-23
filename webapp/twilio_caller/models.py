@@ -69,7 +69,7 @@ class TwilioCall(models.Model):
         self.save()
 
     def __str__(self):
-        if (not self.call_begin) and (not self.call_end):
+        if not self.call_begin:
             return '<Call did not take place>'
 
         if self.call_begin and not self.call_end:

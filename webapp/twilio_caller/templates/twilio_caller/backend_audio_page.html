@@ -19,18 +19,19 @@
 <h3>Keyword Search:</h3>
 
  <form id="keyword" action="" method="POST" onsubmit="keywordSubmit('keyword');">
-   <input type="hidden" name="form_type" value="keyword"/>
-   <input type="hidden" name="audio_key" id="keyword_audio_key" value="{{audio_key}}"/>
+    <input type="hidden" name="form_type" value="keyword"/>
+    <input type="hidden" name="audio_key" id="keyword_audio_key" value="{{audio_key}}"/>
 
-   <div class="input text">
-     <label for="search-term">Search Term</label>
-     <input name="search-term" type="text" style="z-index: 2;">
-   </div>
+            <div class="input text">
+                <label for="search-term">Search Term</label>
+                <input name="search-term" type="text" style="z-index: 2;">
+            </div>
 
-   <div class="input submit">
-     <input type="submit" name="keyword-submit" value="Submit" />
-   </div>
-   {% csrf_token %}
+
+            <div class="input submit">
+                <input type="submit" name="keyword-submit" value="Submit" />
+            </div>
+     {% csrf_token %}
 </form>
 {% if keywords|length > 0 %}
     Keyword Times
@@ -44,55 +45,54 @@
 <h3>Key Phrases:</h3>
 
 <form id="phrases" action="" method="POST" onsubmit="keywordSubmit('phrases');">
-  <input type="hidden" name="audio_key" id="phrases_audio_key" value="{{audio_key}}"/>
-  <input type="hidden" name="form_type" value="phrases"/>
-  <table>
+    <input type="hidden" name="audio_key" id="phrases_audio_key" value="{{audio_key}}"/>
+    <input type="hidden" name="form_type" value="phrases"/>
+<table>
     <tr>
-      <th>Play Keyword</th>
-      <th>Keyword Present</th>
-      <th>Confidence</th>
-      <th>Clip</th>
-      <th>Who</th>
-      <th>What</th>
-      <th>Where</th>
-      <th>When</th>
-      <th>Why</th>
+
+        <th>Play Keyword</th>
+        <th>Keyword Present</th>
+        <th>Confidence</th>
+        <th>Clip</th>
+        <th>Note</th>
+        <th>Who</th>
+        <th>What</th>
+        <th>Where</th>
+        <th>When</th>
+        <th>Why</th>
     </tr>
     {% for phrase, values in phrases.items %}
-    <tr>
-      <th>{{phrase}}</th>
-    </tr>
-    {% for value in values.times %}
-    <tr>
-      <th>
-        <a onClick="setTime(0, '{{value.url}}');" style="cursor: pointer; cursor: hand; background-color:">
-          Play
-        </a><br>
-      </th>
-      <th> <input type="checkbox" name="{{phrase}}_{{value.keytime}}_exists" value="True"> </th>
-      <th> {{value.confidence}} </th>
-      <th> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
+        <tr>
+            <th>{{phrase}}</th>
+        </tr>
+        {% for value in values.times %}
+            <tr>
+                <th> <a onClick="setTime(0, '{{value.url}}');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
+                <th> <input type="checkbox" name="{{phrase}}_{{value.keytime}}_exists" value="True"> </th>
+                <th> {{value.confidence}} </th>
+                <th> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
 
-      <th> <input type="text" name="{{phrase}}_{{value.keytime}}_who"> </th>
-      <th> <input type="text" name="{{phrase}}_{{value.keytime}}_what"> </th>
-      <th> <input type="text" name="{{phrase}}_{{value.keytime}}_where"> </th>
-      <th> <input type="text" name="{{phrase}}_{{value.keytime}}_when"> </th>
-      <th> <input type="text" name="{{phrase}}_{{value.keytime}}_why"> </th>
-    </tr>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_note"> </th>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_who"> </th>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_what"> </th>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_where"> </th>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_when"> </th>
+                <th> <input type="text" name="{{phrase}}_{{value.keytime}}_why"> </th>
+            </tr>
+        {% endfor %}
     {% endfor %}
-    {% endfor %}
-  </table>
-  <div class="input submit">
-    <input type="submit" name="phrase-submit" value="Submit" />
-  </div>
-  {% csrf_token %}
+</table>
+    <div class="input submit">
+                <input type="submit" name="phrase-submit" value="Submit" />
+            </div>
+     {% csrf_token %}
 </form>
 
 
 <br>
 {% for line in lines %}
 {{line.speaker}} :
-{% for word in line.words %}
+{%for word in line.words %}
 <a rel="popover" id=word_{{word.id}} onClick="setTime({{word.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{word.hex_confidence}}"> {{word.text}} </a>
 {% endfor %}
 <br>
