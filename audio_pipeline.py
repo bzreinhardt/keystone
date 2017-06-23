@@ -168,9 +168,10 @@ def run_audio_pipeline(recording_file, call,
             urllib.urlretrieve(call.recording_url, recording_path)
         # TODO: delete original from local filesystem
         print("Slicing audio")
+
         slice_dir = audio_tools.slice_wav_file(recording_path)
         print("uploading sliced folder")
-        blob_names = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
+        blob_names, urls = upload_folder(path.dirname(slice_dir), folder=path.basename(slice_dir))
         print("done uploading slices, finding transcript")
         words = transcribe_in_parallel(blob_names, name=key)
         print('------ transcription ------')
@@ -197,8 +198,10 @@ def run_audio_pipeline(recording_file, call,
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('twilio_id')
+    #parser.add_argument('twilio_id')
     parser.add_argument('--file', default='')
+
+
     args = parser.parse_args()
     environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.settings")
     import django
@@ -207,7 +210,26 @@ if __name__=="__main__":
     from twilio_caller.models import TwilioCall
 
 
+
     #call = TwilioCall.objects.get(twilio_recording_sid=args.twilio_id)
+
+    #call = TwilioCall.objects.create(
+    #    caller_name='Ben',
+    #    caller_email='bzreinhardt@gmail.com',
+    #    caller_number='15137033332',
+    #    recipient_name='Mom',
+    #    recipient_email='cherylsreinhardt@gmail.com',
+    #    recipient_number='19199332882')
+    #call.save()
+
+    #call.twilio_recording_sid = 'mom_beej_test'
+    call = TwilioCall.objects.get(twilio_recording_sid='ben_mom_test')
+    run_audio_pipeline(args.file, call, upload_original=False,
+                       do_indexing=False,
+                       do_transcripts=False,
+                       create_clips=True,
+                       phrases=DEFAULT_PHRASES,
+                       min_confidence=0.4)
 
     #run_audio_pipeline(args.file, call)
 

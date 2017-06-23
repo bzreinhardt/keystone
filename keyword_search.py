@@ -13,7 +13,7 @@ DEEPGRAM_SEARCH_URL = 'https://groupsearch.api.deepgram.com'
 BUCKET_NAME = 'actionitem'
 headers = {'Content-Type': 'application/json'}
 MAX_DISTANCE_BETWEEN_KEYWORDS = 2
-DEFAULT_MIN_CONFIDENCE=0.55
+DEFAULT_MIN_CONFIDENCE=0.4
 DEFAULT_MAX_RETURNS = 10
 
 
