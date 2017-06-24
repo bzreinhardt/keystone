@@ -1,4 +1,4 @@
-from os import path, mkdir
+from os import path, mkdir, remove
 from os import environ
 from google.cloud import storage
 import audio_tools
@@ -10,7 +10,8 @@ from utility import send_simple_message, remove_bad_chars
 import argparse
 import shutil
 from audio_tools import cut_file
-
+import subprocess
+import urllib
 
 DEFAULT_PHRASES = {
     "action item":{'type':'after'},
@@ -21,18 +22,41 @@ DEFAULT_PHRASES = {
 
 DEFAULT_PHRASE_LENGTH_SEC = 15
 
-def run_audio_pipeline(recording_path, call,
+
+def extract_audio(file):
+    file = path.abspath(file)
+    dir_path, filename = path.split(file)
+    filename, ext = path.splitext(filename)
+    if ext == '.wav' or ext == '.flac':
+        return file, False
+    else:
+        outfile = "%s/%s.wav" % (dir_path, filename)
+        command = "ffmpeg -i %s -ab 160k -ac 2 -ar 44100 -vn %s" % (file, outfile)
+        subprocess.call(command, shell=True)
+        return outfile, True
+
+
+def run_audio_pipeline(recording_file, call,
                        upload_original=False,
                        do_indexing=False,
                        do_transcripts=False,
                        create_clips=False,
                        phrases={},
                        min_confidence=0.5):
+
+    recording_path, converted = extract_audio(recording_file)
+    if converted:
+        remove(recording_file)
+
     key = call.twilio_recording_sid
     base = path.basename(recording_path)
 
     client = storage.Client()
     bucket = client.get_bucket('illiad-audio')
+    # Keep track of whether the recording is something we downloaded
+    # just for this function or whether it was already there
+    temp_file = False
+
 
     if upload_original:# and call.recording_url is '':
         print("Uploading original file to cloud")
@@ -98,6 +122,12 @@ def run_audio_pipeline(recording_path, call,
                 phrase_times[phrase] = results
             # Create clips of just the relevant audio
             if create_clips:
+
+                if not path.isfile(recording_path):
+                    temp_file = True
+                    fullpath, filename = path.split(call.recording_url)
+                    recording_path = "/tmp/%s"%filename
+                    urllib.urlretrieve(call.recording_url, recording_path)
                 directory, file = path.split(recording_path)
                 name = file.split(".")[0]
                 charless_phrase = remove_bad_chars(phrase)
@@ -131,6 +161,11 @@ def run_audio_pipeline(recording_path, call,
 
 
     if do_transcripts:
+        if not path.isfile(recording_path):
+            temp_file = True
+            fullpath, filename = path.split(call.recording_url)
+            recording_path = "/tmp/%s" % filename
+            urllib.urlretrieve(call.recording_url, recording_path)
         # TODO: delete original from local filesystem
         print("Slicing audio")
 
@@ -148,6 +183,9 @@ def run_audio_pipeline(recording_path, call,
         print("done uploading transcript")
         call.transcript = json.dumps(words)
         call.save()
+
+    if temp_file:
+        remove(recording_path)
 
     print("FINISHED CALL %s" % key)
     display_url = "%s/alpha/viewer/%s/"%("www.evoke.ai", call.twilio_recording_sid)
@@ -168,7 +206,12 @@ if __name__=="__main__":
     environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.settings")
     import django
     django.setup()
+    from django.utils import timezone
     from twilio_caller.models import TwilioCall
+
+
+
+    #call = TwilioCall.objects.get(twilio_recording_sid=args.twilio_id)
 
     #call = TwilioCall.objects.create(
     #    caller_name='Ben',
