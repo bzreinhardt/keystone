@@ -17,6 +17,8 @@ class TwilioCall(models.Model):
     twilio_recording_sid = models.TextField(blank=True, null=True)
     twilio_recording_url = models.TextField(blank=True, null=True)
 
+    participants = models.TextField()
+
     recording_url = models.TextField(blank=True, null=True)
     audio_index_id = models.TextField(blank=True, null=True)
     transcript = models.TextField(blank=True, null=True)

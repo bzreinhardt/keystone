@@ -1,0 +1,28 @@
+{% load static %}
+<html>
+
+<head>
+  <title>upload uberconf to evoke.ai</title>
+  <link rel="stylesheet" href="{% static '/twilio_caller/style.css' %}" />
+</head>
+
+<body>
+  <h1>
+    <div class="container name">evoke.ai</div>
+    <div class="container">Upload from UberConference</div>
+  </h1>
+
+  <div class="container">
+    <form method="POST" action="" enctype="multipart/form-data">
+      <input type="file" name="recording" />
+      <p>Participants (comma-separated):</p>
+      <input type="text" name="participants" placeholder="Noah, Ben" />
+      <p>Keywords (comma-separated):</p>
+      <input type="text" name="keywords" value="action item, deadline" placeholder="action item, deadline" />
+      {% csrf_token %}
+      <input type="submit" value="Upload" class="cta cta-upload" />
+    </form>
+  </div>
+</body>
+
+</html>

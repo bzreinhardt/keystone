@@ -199,6 +199,38 @@ def status(request, call_id):
         return HttpResponseNotFound('error: call not found.')
     return render(request, 'twilio_caller/status.html', { 'call': call })
 
+def call_from_upload(request_file):
+    pass
+
+def upload_uberconf(request):
+    if request.method == 'POST':
+        upload = request.FILES['recording']
+        tmpfile = path.join('/tmp', upload.name.replace(' ', ''))
+        with open(tmpfile, 'wb') as f:
+            for chunk in upload.chunks():
+                f.write(chunk)
+        name, extension = path.splitext(upload.name)
+        if TwilioCall.objects.filter(twilio_recording_sid=name).exists():
+            call = TwilioCall.objects.get(twilio_recording_sid=name)
+        else:
+            call = TwilioCall.objects.create(twilio_recording_sid=name)
+        phrases = {kw.strip(): {'type': 'after'}
+                   for kw in request.POST['keywords'].split(',')}
+        call.phrases = json.dumps(phrases)
+        call.participants = request.POST['participants']
+        call.save()
+        success, key = run_audio_pipeline(tmpfile, call,
+                                          do_indexing=True,
+                                          upload_original=True,
+                                          do_transcripts=False,
+                                          create_clips=True,
+                                          phrases=phrases,
+                                          min_confidence=0.4)
+        unlink(tmpfile)
+        return redirect(reverse('render_backend_viewer', args=[name]))
+    else:
+        return render(request, 'twilio_caller/upload_uberconf.html')
+
 def notes(request, call_id):
     call = TwilioCall.objects.get(id=call_id)
     if call is None:
@@ -289,8 +321,9 @@ def viewer(request, key, show_confidence=None):
 
                 print_phrases[phrase]['times'].append(out_dict)
 
-    return render(request, 'twilio_caller/audio_page.html', {"lines":lines, "audio_key":key, "audio_url":audio_url,
-                           "keywords":keywords, "phrases":print_phrases})
+    return render(request, 'twilio_caller/audio_page.html', {
+        "lines":lines, "audio_key":key, "audio_url":audio_url,
+        "keywords":keywords, "phrases":print_phrases})
 
 
 def backend_viewer(request, key):

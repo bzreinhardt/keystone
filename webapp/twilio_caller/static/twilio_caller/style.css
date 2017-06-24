@@ -52,7 +52,7 @@ p {
     padding-left: 10px;
 }
 
-.dialer-form input {
+input[type="text"] {
     width: calc(100%);
     font-size: 18px;
     margin-bottom: 10px;
@@ -61,11 +61,10 @@ p {
     padding: 4px;
 }
 
-.call-btn {
+.cta {
     /* size, shape, color */
     display: block;
     width: 150px;
-    margin: 40px auto 0;
     background-color: #12b912;
     background: radial-gradient(ellipse at center, #3bcb40 0%,#28a028 100%);
     border: 1px solid #004e00;
@@ -83,11 +82,19 @@ p {
     text-shadow: 0 -1px 1px #4f924f;
 }
 
-.call-btn:hover, .call-btn:focus {
+.cta-call {
+    margin: 40px auto 0;
+}
+
+.cta-upload {
+    margin-top: 40px;
+}
+
+.cta:hover, .cta:focus {
     background: radial-gradient(ellipse at center, #3bcb40 0%,#26bb26 100%);
 }
 
-.call-btn:active {
+.cta:active {
     padding-top: .5em;
     padding-bottom: .5em;
     box-shadow: 0 1px 4px #666;

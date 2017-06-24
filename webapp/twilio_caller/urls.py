@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^viewer/([0-z]+)/$', views.viewer, name='render_viewer'),
     url(r'^notes/([0-9]+)/$', views.notes, name='notes'),
     url(r'^viewer/([0-z]+)/(?P<show_confidence>\w+)$', views.viewer, name='render_viewer'),
-    url(r'^backend_viewer/([0-z]+)/$', views.backend_viewer, name='render_backend_viewer'),
-    url(r'^upload', views.simple_upload, name='simple_upload')
+    url(r'^backend_viewer/([0-9A-Za-z_-]+)/$', views.backend_viewer, name='render_backend_viewer'),
+    url(r'^upload$', views.simple_upload, name='simple_upload'),
+    url(r'^upload_uberconf$', views.upload_uberconf, name='upload_uberconf'),
 ]
