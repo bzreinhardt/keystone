@@ -45,8 +45,6 @@ def run_audio_pipeline(recording_file, call,
                        min_confidence=0.5):
 
     recording_path, converted = extract_audio(recording_file)
-    if converted:
-        remove(recording_file)
 
     key = call.twilio_recording_sid
     base = path.basename(recording_path)
