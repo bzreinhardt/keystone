@@ -19,7 +19,9 @@ echo '= source activate keystone'
 source activate keystone
 echo '= killing any uwsgi processes'
 set +e
-killall uwsgi || true
+killall -9 uwsgi || true
+echo '= killing any worker processes'
+killall -9 manage.py || true
 set -e
 echo '= running uwsgi for webapp'
 uwsgi --socket /tmp/evoke.sock --module webapp.wsgi --chmod-socket=666 &> ~/logs/uwsgi.log &
