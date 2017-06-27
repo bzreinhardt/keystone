@@ -23,3 +23,5 @@ killall uwsgi || true
 set -e
 echo '= running uwsgi for webapp'
 uwsgi --socket /tmp/evoke.sock --module webapp.wsgi --chmod-socket=666 &> ~/logs/uwsgi.log &
+echo '= starting background worker'
+python manage.py worker &> ~/logs/worker.log &

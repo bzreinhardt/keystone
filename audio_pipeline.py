@@ -31,7 +31,7 @@ def extract_audio(file):
         return file, False
     else:
         outfile = "%s/%s.wav" % (dir_path, filename)
-        command = "ffmpeg -i %s -ab 160k -ac 2 -ar 44100 -vn %s" % (file, outfile)
+        command = "ffmpeg -i %s -ab 160k -ac 2 -ar 44100 -vn -y %s" % (file, outfile)
         subprocess.call(command, shell=True)
         return outfile, True
 

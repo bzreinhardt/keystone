@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 from os import path
+from getpass import getuser
 import requests
 from urllib.parse import urlparse
 
@@ -49,9 +50,12 @@ else:
     ALLOWED_HOSTS.append('54.183.66.153')
     ALLOWED_HOSTS.append('evoke.ai')
     ALLOWED_HOSTS.append('www.evoke.ai')
-    pass # someday add the real URL here
-    
 
+# SQS
+if DEBUG:
+    RECORDING_QUEUE = '{}-0'.format(getuser())
+else:
+    RECORDING_QUEUE = 'prod-worker-queue'
 
 # Application definition
 
@@ -61,6 +65,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
