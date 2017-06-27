@@ -44,13 +44,23 @@ Ngrok is a tunnel used to expose your development web server to the public web. 
 
 Download [ngrok](http://ngrok.com).  Unzip the package, which just contains a binary, and move it to some directory on your `$PATH`--I use `~/bin/`.  Run `ngrok http 8000` to set up a proxy to your machine at port 8000, which is where the Django development server will listen.
 
+### boto/aws configuration
+
+Create a `~/.aws` directory with two files.  `~/.aws/config`:
+
+    [default]
+    region=us-west-1
+
+You'll have to get `~/.aws/credentials` from Noah or Ben, or the server.
 
 ### Webapp
 
 To run the webapp locally first create a ngrok instance
+
 ```bash
 ngrok http 8000
 ```
+
 And in a new shell
 
 ```bash
