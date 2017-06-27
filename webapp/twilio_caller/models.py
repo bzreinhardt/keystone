@@ -44,6 +44,20 @@ class TwilioCall(models.Model):
     state = models.CharField(max_length=2, choices=CALL_STATES,
                              default=NOT_INITIATED)
 
+    KEYWORD_STATES = (
+        ('NI', 'Not Initiated'),
+        ('RU', 'Recording Uploaded'),
+        ('KI', 'Keywords Indexed'),
+        ('MN', 'Manual Notes taken'),
+    )
+
+    RECORDING_UPLOADED = 'RU'
+    KEYWORDS_INDEXED = 'KI'
+    MANUAL_NOTES_TAKEN = 'MN'
+
+    keyword_state = models.CharField(max_length=2, choices=KEYWORD_STATES,
+                                     default=RECORDING_UPLOADED)
+
     def begin_call(self):
         assert self.state == self.NOT_INITIATED
         self.call_begin = timezone.now()

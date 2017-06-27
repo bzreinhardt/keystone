@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-#from django.contrib.sites.models import Site
+from django.contrib.sites.models import Site
 from django.conf import settings
 from twilio.rest import Client as Twilio
 from django import forms
@@ -19,6 +19,7 @@ import re
 import string
 
 import requests
+import boto3
 
 from google.cloud import storage
 
@@ -45,6 +46,8 @@ NUM_KEYWORDS = 4
 DEFAULT_PHRASE_TIME_SEC=15
 BAD_PHRASES = ['', ' ']
 
+sqs = boto3.resource('sqs')
+recording_queue = sqs.get_queue_by_name(QueueName=settings.RECORDING_QUEUE)
 
 class ReusableForm(forms.Form):
     name = forms.CharField(label='Name:', max_length=100)
@@ -218,15 +221,17 @@ def upload_uberconf(request):
                    for kw in request.POST['keywords'].split(',')}
         call.phrases = json.dumps(phrases)
         call.participants = request.POST['participants']
+        call.keyword_state = TwilioCall.RECORDING_UPLOADED
         call.save()
-        success, key = run_audio_pipeline(tmpfile, call,
-                                          do_indexing=True,
-                                          upload_original=True,
-                                          do_transcripts=False,
-                                          create_clips=True,
-                                          phrases=phrases,
-                                          min_confidence=0.4)
-        unlink(tmpfile)
+        recording_queue.send_message(MessageBody=json.dumps({
+            'type': 'uberconf_recording',
+            'data': {
+                'call_id': call.id,
+                'twilio_recording_sid': call.twilio_recording_sid,
+                'tmpfile_path': tmpfile,
+                'phrases': phrases,
+            }
+        }))
         return redirect(reverse('render_backend_viewer', args=[name]))
     else:
         return render(request, 'twilio_caller/upload_uberconf.html')
@@ -415,8 +420,12 @@ def backend_viewer(request, key):
             if phrase in BAD_PHRASES:
                 continue
             print_phrases[phrase] = {'times':[]}
-            #pdb.set_trace()
             for i, time in enumerate(phrase_results[phrase]['startTime']):
+                if phrase not in phrases:
+                    # this only happens when the file has been uploaded multiple
+                    # times, with different phrase sets. Should only happen in
+                    # dev and testing. We can safely ignore, for now.
+                    continue
                 if phrases[phrase]['type'] == 'before':
                     starttime = time - DEFAULT_PHRASE_TIME_SEC
                     stoptime = time
