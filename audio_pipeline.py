@@ -186,11 +186,10 @@ def run_audio_pipeline(recording_file, call,
         remove(recording_path)
 
     print("FINISHED CALL %s" % key)
-    display_url = "%s/alpha/viewer/%s/"%("www.evoke.ai", call.twilio_recording_sid)
+    display_url = "%s/alpha/backend_viewer/%s/"%("www.evoke.ai", call.twilio_recording_sid)
     email_text = "Finished processing audio for %s. Results are available at %s" % (call.caller_name, display_url)
     send_simple_message(subject='audio pipeline complete!', text= email_text )
-    if call.caller_email:
-        send_simple_message(to=call.caller_email, subject='Evokation Complete!', text=email_text)
+
     return (True, key)
 
 
