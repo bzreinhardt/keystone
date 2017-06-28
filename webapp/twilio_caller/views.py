@@ -66,6 +66,12 @@ def call(request):
         recipient_name=request.POST['recipient-name'],
         recipient_email=request.POST['recipient-email'],
         recipient_number=phone_number_parser(request.POST['recipient-number']))
+    # Make sure the call always has a name
+    if call.caller_name is None:
+        call.caller_name = call.caller_number
+    if call.recipient_name is None:
+        call.recipient_name = call.recipient_number
+
     call.save()
 
     #Grab the Phrases
@@ -221,6 +227,19 @@ def upload_uberconf(request):
                    for kw in request.POST['keywords'].split(',')}
         call.phrases = json.dumps(phrases)
         call.participants = request.POST['participants']
+        # Set the people in the call to be the to and from of the call
+        participants=request.POST['participants'].split(',')
+        if len(participants) > 0:
+            call.caller_name = participants[0]
+        else:
+            call.caller_name = 'unknown'
+        if len(participants) > 1:
+            call.recipient_name = participants[1]
+        else:
+            call.recipient_name = 'unknown'
+        call.call_begin = timezone.now()
+
+
         call.keyword_state = TwilioCall.RECORDING_UPLOADED
         call.save()
         recording_queue.send_message(MessageBody=json.dumps({
