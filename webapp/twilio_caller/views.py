@@ -4,7 +4,6 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.sites.models import Site
 from django.conf import settings
 from twilio.rest import Client as Twilio
 from django import forms
