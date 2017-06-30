@@ -8,8 +8,6 @@ import sys
 import math
 from utility import progress_bar
 
-from memory_profiler import memory_usage
-
 PATH="/Users/Zaaron/Downloads/InterviewAudio10.wav"
 
 # division time heurisitc in seconds
