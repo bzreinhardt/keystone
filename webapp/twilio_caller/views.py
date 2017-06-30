@@ -47,6 +47,7 @@ DEFAULT_PHRASE_TIME_SEC=15
 BAD_PHRASES = ['', ' ']
 
 sqs = boto3.resource('sqs')
+print('using queue: {}'.format(settings.RECORDING_QUEUE))
 recording_queue = sqs.get_queue_by_name(QueueName=settings.RECORDING_QUEUE)
 
 class ReusableForm(forms.Form):
@@ -89,8 +90,7 @@ def call(request):
     min_confidence = float(min_confidence)
     call.min_confidence = min_confidence
     call.save()
-    #import pdb
-    #pdb.set_trace()
+
     if request.method == 'POST' and 'myfile' in request.FILES.keys():
         pattern = re.compile('[\W_]+')
         myfile = request.FILES['myfile']
@@ -101,17 +101,18 @@ def call(request):
             for chunk in myfile.chunks():
                 f.write(chunk)
         call.twilio_recording_sid= name + ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-        call.save()
-        success, key = run_audio_pipeline(filename, call,
-                                          do_indexing=True,
-                                          upload_original=True,
-                                          do_transcripts=False,
-                                          phrases=phrases)
         call.call_end = timezone.now()
         call.state = call.CALL_FINISHED
         call.save()
-        if success:
-            unlink(filename)
+        recording_queue.send_message(MessageBody=json.dumps({
+            'type': 'twilio_recording',
+            'data': {
+                'call_id': call.id,
+                'twilio_recording_sid': call.twilio_recording_sid,
+                'tmpfile_path': tmpfile,
+                'phrases': phrases,
+            }
+        }))
 
     else:
         twilio.api.account.calls.create(
@@ -132,58 +133,6 @@ def connect(request, call_id):
     call.begin_call()
     return render(request, 'twilio_caller/call.xml', { 'call': call })
 
-
-
-
-class ProcessRecordingAfterHttpResponse(HttpResponse):
-    '''Send HttpResponse and then download & process Twilio call.
-
-    This is really only to be used when returning responses for the
-    <Dial recordingStatusCallback="..."> element in TwiML.
-
-    If generally doing things after returning HTTP responses is
-    useful, this class can be abstracted into a more general class for
-    that (RunAfterHttpResponse or something).  But I suspect at that
-    point it's actually better to have some offline work queue.
-    '''
-    def __init__(self, twilioData={}, *args, **kwargs):
-        super(ProcessRecordingAfterHttpResponse, self).__init__(*args, **kwargs)
-        self.twilioData = twilioData
-
-    def close(self):
-        super(ProcessRecordingAfterHttpResponse, self).close()
-        r = requests.get(self.twilioData['RecordingUrl'])
-        print('---- response to downloading recording ----')
-        pprint(r.headers)
-
-        if r.headers['Content-Type'] != 'audio/x-wav':
-            raise Exception('can only handle MIME type audio/x-wav, not {}'.format(r.headers['Content-Type']))
-
-
-        recording_path = '/tmp/twilio_{}.wav'.format(
-            self.twilioData['RecordingSid'])
-        with open(recording_path, 'wb') as f:
-            f.write(r.content)
-            print('saved to {}'.format(recording_path))
-
-        base = path.basename(recording_path)
-        key = self.twilioData['RecordingSid']
-        call = TwilioCall.objects.get(twilio_recording_sid=key)
-        success, key = run_audio_pipeline(recording_path,
-                                          call,
-                                          do_indexing=True,
-                                          upload_original=True,
-                                          do_transcripts=False,
-                                          create_clips=True,
-                                          phrases=json.loads(call.phrases),
-                                          min_confidence=0.4)
-        if success:
-            unlink(recording_path)
-
-        print("FINISHED CALL %s"% self.twilioData['RecordingSid'])
-
-
-
 @csrf_exempt
 @require_http_methods(["POST"])
 def record_callback(request, call_id):
@@ -193,8 +142,11 @@ def record_callback(request, call_id):
     if call is None:
         return HttpResponseNotFound('error: call not found.')
     call.end_call(request.POST)
-    return ProcessRecordingAfterHttpResponse(twilioData=request.POST,
-                                             content='success') # 200 for Twilio
+    recording_queue.send_message(MessageBody=json.dumps({
+                'type': 'twilio_call',
+                'data': { 'twilio_rec': request.POST },
+                }))
+    return HttpResponse('success') # 200 for Twilio
 
 def status(request, call_id):
     call = TwilioCall.objects.get(id=call_id)
