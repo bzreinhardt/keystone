@@ -116,6 +116,9 @@ def call(request):
                 'twilio_recording_sid': call.twilio_recording_sid,
                 'tmpfile_path': tmpfile,
                 'phrases': phrases,
+                'force_indexing': False,
+                'force_upload': False,
+                'force_transcript': False
             }
         }))
 
@@ -149,7 +152,11 @@ def record_callback(request, call_id):
     call.end_call(request.POST)
     recording_queue.send_message(MessageBody=json.dumps({
                 'type': 'twilio_call',
-                'data': { 'twilio_rec': request.POST },
+                'data': { 'twilio_rec': request.POST,
+                          'force_indexing': False,
+                          'force_upload': False,
+                          'force_transcript': False
+                        },
                 }))
     return HttpResponse('success') # 200 for Twilio
 
@@ -200,6 +207,9 @@ def upload_uberconf(request):
                 'twilio_recording_sid': call.twilio_recording_sid,
                 'tmpfile_path': tmpfile,
                 'phrases': phrases,
+                'force_indexing':False,
+                'force_upload':False,
+                'force_transcript':False,
             }
         }))
         return redirect(reverse('render_backend_viewer', args=[name]))
