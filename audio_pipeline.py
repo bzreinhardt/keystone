@@ -14,6 +14,7 @@ import subprocess
 import urllib
 from time import sleep
 
+
 DEFAULT_PHRASES = {
     "action item":{'type':'after'},
 "that's fascinating":{'type':'before'},
@@ -30,7 +31,7 @@ def extract_audio(file):
     file = path.abspath(file)
     dir_path, filename = path.split(file)
     filename, ext = path.splitext(filename)
-    if ext == '.wav' or ext == '.flac':
+    if ext == '.wav':
         return file, False
     else:
         outfile = "%s/%s.wav" % (dir_path, filename)
@@ -59,8 +60,7 @@ def run_audio_pipeline(recording_file, call,
     # just for this function or whether it was already there
     temp_file = False
 
-
-    if upload_original:# and call.recording_url is '':
+    if upload_original or call.recording_url is None:
         print("Uploading original file to cloud")
         blob = bucket.blob(base)
         with open(recording_path, 'rb') as f:
@@ -71,7 +71,7 @@ def run_audio_pipeline(recording_file, call,
         call.recording_url = url
         call.save()
 
-    if do_indexing:# and call.audio_index_id is '':
+    if do_indexing or call.audio_index_id is None:
         tries = 0
         print("Indexing call %s" % call.twilio_recording_sid)
         deepgram_id = index_audio_url(call.recording_url)
@@ -98,9 +98,6 @@ def run_audio_pipeline(recording_file, call,
             send_simple_message(subject='audio pipeline failure!',
                                 text=email_text)
             return(False, key)
-
-
-
 
 
     if call.phrase_results:

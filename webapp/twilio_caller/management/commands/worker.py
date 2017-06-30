@@ -53,13 +53,15 @@ class Command(BaseCommand):
             
             sleep(1)
 
-    def uberconf_recording(self, *, call_id, twilio_recording_sid, tmpfile_path, phrases):
+    def uberconf_recording(self, *, call_id, twilio_recording_sid,
+                           tmpfile_path, phrases, force_indexing, force_upload,
+                    force_transcript):
         print('{} - new message'.format(timestamp()))
         call = TwilioCall.objects.get(id=call_id)
         success, key = run_audio_pipeline(tmpfile_path, call,
-                                          do_indexing=True,
-                                          upload_original=True,
-                                          do_transcripts=False,
+                                          do_indexing=force_indexing,
+                                          upload_original=force_upload,
+                                          do_transcripts=force_transcript,
                                           create_clips=True,
                                           phrases=phrases,
                                           min_confidence=0.4)
@@ -73,7 +75,8 @@ class Command(BaseCommand):
             print('{} - worker error'.format(timestamp()))
             return False
 
-    def twilio_call(self, *, twilio_rec):
+    def twilio_call(self, *, twilio_rec, force_indexing, force_upload,
+                    force_transcript):
         r = requests.get(twilio_rec['RecordingUrl'])
         if r.headers['Content-Type'] != 'audio/x-wav':
             raise Exception('can only handle MIME type audio/x-wav, not {}' \
@@ -86,9 +89,9 @@ class Command(BaseCommand):
 
         call = TwilioCall.objects.get(twilio_recording_sid=sid)
         success, key = run_audio_pipeline(recording_path, call,
-                                          do_indexing=True,
-                                          upload_original=False,
-                                          do_transcripts=False,
+                                          do_indexing=force_indexing,
+                                          upload_original=force_upload,
+                                          do_transcripts=force_transcript,
                                           create_clips=True,
                                           phrases=json.loads(call.phrases),
                                           min_confidence=0.4)

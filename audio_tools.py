@@ -8,6 +8,8 @@ import sys
 import math
 from utility import progress_bar
 
+from memory_profiler import memory_usage
+
 PATH="/Users/Zaaron/Downloads/InterviewAudio10.wav"
 
 # division time heurisitc in seconds
@@ -169,8 +171,14 @@ def slice_file(file):
     return flac_dir
 
 def cut_file(file, start_time= 0, stop_time=10, out_file=None, split=False):
-    #pdb.set_trace()
-    data, rate = sf.read(file)
+    #hack - should use magic to check filetype
+    if os.path.splitext(file) == '.wav':
+        data, rate = wavfile.read(file)
+    else:
+        data, rate = sf.read(file)
+
+    print("mem_usage after opening audio")
+    print(mem_usage)
     start_time = float(start_time)
     stop_time = float(stop_time)
     extension = file.split(".")[-1]
