@@ -12,6 +12,7 @@ import shutil
 from audio_tools import cut_file
 import subprocess
 import urllib
+from time import sleep
 
 DEFAULT_PHRASES = {
     "action item":{'type':'after'},
@@ -21,6 +22,8 @@ DEFAULT_PHRASES = {
 }
 
 DEFAULT_PHRASE_LENGTH_SEC = 15
+FAIL_SLEEP_SEC = 2
+MAX_WAIT_TIME_SEC = 1.5*60*60
 
 
 def extract_audio(file):
@@ -41,6 +44,7 @@ def run_audio_pipeline(recording_file, call,
                        do_indexing=False,
                        do_transcripts=False,
                        create_clips=False,
+                       retries = 0,
                        phrases={},
                        min_confidence=0.5):
 
@@ -68,15 +72,36 @@ def run_audio_pipeline(recording_file, call,
         call.save()
 
     if do_indexing:# and call.audio_index_id is '':
-        print("Indexing file")
+        tries = 0
+        print("Indexing call %s" % call.twilio_recording_sid)
         deepgram_id = index_audio_url(call.recording_url)
         call.audio_index_id = deepgram_id
         call.save()
-        index_ready = False
-        while not index_ready:
+        wait_time = 0
+
+        while wait_time < MAX_WAIT_TIME_SEC and tries <= retries:
             test = audio_search(call.audio_index_id, 'test')
             if test['error'] is None:
-                index_ready = True
+                break
+            else:
+                sleep(FAIL_SLEEP_SEC)
+                wait_time = wait_time + FAIL_SLEEP_SEC
+                if wait_time >= MAX_WAIT_TIME_SEC:
+                    tries = tries + 1
+                    deepgram_id = index_audio_url(call.recording_url)
+                    call.audio_index_id = deepgram_id
+                    call.save()
+                    wait_time = 0
+        if wait_time >= MAX_WAIT_TIME_SEC:
+            print("Indexing failed for %s" % key)
+            email_text = "Failed to index audio for %s" % key
+            send_simple_message(subject='audio pipeline failure!',
+                                text=email_text)
+            return(False, key)
+
+
+
+
 
     if call.phrase_results:
         results = json.loads(call.phrase_results)
@@ -186,18 +211,22 @@ def run_audio_pipeline(recording_file, call,
         remove(recording_path)
 
     print("FINISHED CALL %s" % key)
-    display_url = "%s/alpha/viewer/%s/"%("www.evoke.ai", call.twilio_recording_sid)
+    display_url = "%s/alpha/backend_viewer/%s/"%("www.evoke.ai", call.twilio_recording_sid)
     email_text = "Finished processing audio for %s. Results are available at %s" % (call.caller_name, display_url)
     send_simple_message(subject='audio pipeline complete!', text= email_text )
-    if call.caller_email:
-        send_simple_message(to=call.caller_email, subject='Evokation Complete!', text=email_text)
+
     return (True, key)
 
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    #parser.add_argument('twilio_id')
+    parser.add_argument('--twilio_id')
     parser.add_argument('--file', default='')
+    parser.add_argument('--do_indexing', action='store_true', default=False)
+    parser.add_argument('--do_transcripts', action='store_true', default=False)
+    parser.add_argument('--create_clips', action='store_true', default=False)
+    parser.add_argument('--upload_original', action='store_true', default=False)
+
 
 
     args = parser.parse_args()
@@ -208,26 +237,23 @@ if __name__=="__main__":
     from twilio_caller.models import TwilioCall
 
 
-
-    #call = TwilioCall.objects.get(twilio_recording_sid=args.twilio_id)
-
-    #call = TwilioCall.objects.create(
-    #    caller_name='Ben',
-    #    caller_email='bzreinhardt@gmail.com',
-    #    caller_number='15137033332',
-    #    recipient_name='Mom',
-    #    recipient_email='cherylsreinhardt@gmail.com',
-    #    recipient_number='19199332882')
-    #call.save()
-
-    #call.twilio_recording_sid = 'mom_beej_test'
-    call = TwilioCall.objects.get(twilio_recording_sid='ben_mom_test')
-    run_audio_pipeline(args.file, call, upload_original=False,
-                       do_indexing=False,
-                       do_transcripts=False,
-                       create_clips=True,
+    call = TwilioCall.objects.get(twilio_recording_sid=args.twilio_id)
+    if call.participants is not None:
+        participants = call.participants.split(',')
+    if len(participants) > 0 and call.caller_name is None:
+        call.caller_name = participants[0]
+    elif call.caller_name is None:
+        call.caller_name = 'unknown'
+    if len(participants) > 1 and call.recipient_name is None:
+        call.recipient_name = participants[1]
+    elif call.recipient_name is None:
+        call.recipient_name = 'unknown'
+    if call.call_begin is None:
+        call.call_begin = timezone.now()
+    run_audio_pipeline(args.file, call, upload_original=args.upload_original,
+                       do_indexing=args.do_indexing,
+                       do_transcripts=args.do_transcripts,
+                       create_clips=args.create_clips,
                        phrases=DEFAULT_PHRASES,
                        min_confidence=0.4)
-
-    #run_audio_pipeline(args.file, call)
 
