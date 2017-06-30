@@ -175,8 +175,6 @@ def cut_file(file, start_time= 0, stop_time=10, out_file=None, split=False):
     else:
         data, rate = sf.read(file)
 
-    print("mem_usage after opening audio")
-    print(mem_usage)
     start_time = float(start_time)
     stop_time = float(stop_time)
     extension = file.split(".")[-1]
