@@ -11,7 +11,7 @@ import argparse
 import shutil
 from audio_tools import cut_file
 import subprocess
-import urllib
+import urllib.request
 from time import sleep
 
 
@@ -49,11 +49,9 @@ def run_audio_pipeline(recording_file, call,
                        phrases={},
                        min_confidence=0.5):
 
-    print("Extracting Audio")
-    recording_path, converted = extract_audio(recording_file)
 
     key = call.twilio_recording_sid
-    base = path.basename(recording_path)
+    recording_path = '' 
 
     client = storage.Client()
     bucket = client.get_bucket('illiad-audio')
@@ -63,6 +61,9 @@ def run_audio_pipeline(recording_file, call,
 
     if upload_original or call.recording_url is None:
         print("Uploading original file to cloud")
+        print("Extracting Audio")
+        recording_path, converted = extract_audio(recording_file)
+        base = path.basename(recording_path)
         blob = bucket.blob(base)
         with open(recording_path, 'rb') as f:
             blob.upload_from_file(f)
@@ -157,7 +158,7 @@ def run_audio_pipeline(recording_file, call,
                     temp_file = True
                     fullpath, filename = path.split(call.recording_url)
                     recording_path = "/tmp/%s"%filename
-                    urllib.urlretrieve(call.recording_url, recording_path)
+                    urllib.request.urlretrieve(call.recording_url, recording_path)
                 directory, file = path.split(recording_path)
                 name = file.split(".")[0]
                 charless_phrase = remove_bad_chars(phrase)
