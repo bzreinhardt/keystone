@@ -22,7 +22,7 @@ import boto3
 
 from google.cloud import storage
 
-from twilio_caller.models import TwilioCall, User
+from twilio_caller.models import TwilioCall
 from utility import phone_number_parser, send_simple_message
 from audio_pipeline import run_audio_pipeline
 
