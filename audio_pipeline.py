@@ -49,6 +49,7 @@ def run_audio_pipeline(recording_file, call,
                        phrases={},
                        min_confidence=0.5):
 
+    print("Extracting Audio")
     recording_path, converted = extract_audio(recording_file)
 
     key = call.twilio_recording_sid
@@ -70,6 +71,8 @@ def run_audio_pipeline(recording_file, call,
         url = blob.public_url
         call.recording_url = url
         call.save()
+    else:
+        print("skipping upload")
 
     if do_indexing or call.audio_index_id is None:
         tries = 0
@@ -98,6 +101,8 @@ def run_audio_pipeline(recording_file, call,
             send_simple_message(subject='audio pipeline failure!',
                                 text=email_text)
             return(False, key)
+    else:
+        print("skipping indexing")
 
 
     if call.phrase_results:
@@ -123,6 +128,8 @@ def run_audio_pipeline(recording_file, call,
                                              results[phrase]['whys'][i]]]):
                     results[phrase]['is_phrase'][i] = True
             call.save()
+    else:
+        print("no phrase resuls")
 
     if len(phrases) > 0:
 
@@ -132,8 +139,11 @@ def run_audio_pipeline(recording_file, call,
             test = audio_search(call.audio_index_id, 'test')
             if test['error'] is None:
                 index_ready = True
+            sleep(2)
         phrase_times = {}
 
+        print("searching for phrases:")
+        print("phrases")
         for phrase in phrases:
             if len(phrase) == 0:
                 continue
@@ -166,10 +176,11 @@ def run_audio_pipeline(recording_file, call,
                         start_time = time
                         stop_time = time + DEFAULT_PHRASE_LENGTH_SEC
                     clip_file = "%s/%s_%d.wav"%(clip_dir, charless_phrase, i)
+                    print("slicing file")
                     cut_file(recording_path, start_time=start_time,
                                              stop_time=stop_time,
                                              out_file=clip_file)
-
+                    print("sliced file")
 
                 blob_names, urls = upload_folder(path.dirname(clip_dir), folder=path.basename(clip_dir), make_public=True)
                 phrase_times[phrase]['slices'] = urls
