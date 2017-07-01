@@ -170,10 +170,11 @@ def slice_file(file):
 
 def cut_file(file, start_time= 0, stop_time=10, out_file=None, split=False):
     #hack - should use magic to check filetype
-    if os.path.splitext(file) == '.wav':
-        data, rate = wavfile.read(file)
+    f, ext = os.path.splitext(file) 
+    if ext == '.wav':
+         rate, data = wavfile.read(file)
     else:
-        data, rate = sf.read(file)
+        rate, data = sf.read(file)
 
     start_time = float(start_time)
     stop_time = float(stop_time)
