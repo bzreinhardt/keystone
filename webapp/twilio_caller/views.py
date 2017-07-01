@@ -22,7 +22,7 @@ import boto3
 
 from google.cloud import storage
 
-from twilio_caller.models import TwilioCall
+from twilio_caller.models import TwilioCall, User
 from utility import phone_number_parser, send_simple_message
 from audio_pipeline import run_audio_pipeline
 
@@ -59,6 +59,21 @@ def index(request):
 
 @require_http_methods(["POST"])
 def call(request):
+    # First make sure the caller has a verified number
+    number = phone_number_parser(request.POST['caller-number'])
+    caller_ids = twilio.outgoing_caller_ids.list(phone_number=number)
+    if len(caller_ids) == 0:
+        code = twilio.validation_requests.create(number)
+        return render(request, 'twilio_caller/callform.html', {
+            'code':code.validation_code,
+            'caller_name':request.POST['caller-name'],
+            'caller_email':request.POST['caller-email'],
+            'caller_number':number,
+            'recipient_name':request.POST['recipient-name'],
+            'recipient_email':request.POST['recipient-email'],
+            'recipient_number':
+                phone_number_parser(request.POST['recipient-number'])})
+
     call = TwilioCall.objects.create(
         caller_name=request.POST['caller-name'],
         caller_email=request.POST['caller-email'],
@@ -71,63 +86,14 @@ def call(request):
         call.caller_name = call.caller_number
     if call.recipient_name is None:
         call.recipient_name = call.recipient_number
-
     call.save()
 
-    #Grab the Phrases
-    phrases = {}
-    for i in range(0, NUM_KEYWORDS):
-        if 'keyword_%d'%i in request.POST:
-            phrase = request.POST['keyword_%d'%i]
-            if request.POST['keyword_%d'%i] == 'before':
-                phrases[phrase] = {'type':'before'}
-            else:
-                phrases[phrase] = {'type':'after'}
 
-    call.phrases = json.dumps(phrases)
-
-
-
-    generate_transcript = 'transcript' in request.POST.keys()
-    min_confidence = request.POST['min_confidence']
-    if len(min_confidence) == 0:
-        min_confidence = 0.3
-    min_confidence = float(min_confidence)
-    call.min_confidence = min_confidence
-    call.save()
-
-    if request.method == 'POST' and 'myfile' in request.FILES.keys():
-        pattern = re.compile('[\W_]+')
-        myfile = request.FILES['myfile']
-        name, file_extension = path.splitext(myfile.name)
-        name = pattern.sub('', name)
-        filename = '/tmp/%s%s' % (name, file_extension)
-        with open(filename, 'wb') as f:
-            for chunk in myfile.chunks():
-                f.write(chunk)
-        call.twilio_recording_sid= name + ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-        call.call_end = timezone.now()
-        call.state = call.CALL_FINISHED
-        call.save()
-        recording_queue.send_message(MessageBody=json.dumps({
-            'type': 'twilio_recording',
-            'data': {
-                'call_id': call.id,
-                'twilio_recording_sid': call.twilio_recording_sid,
-                'tmpfile_path': tmpfile,
-                'phrases': phrases,
-                'force_indexing': False,
-                'force_upload': False,
-                'force_transcript': False
-            }
-        }))
-
-    else:
-        twilio.api.account.calls.create(
-            to=call.recipient_number, # call recipient first
-            from_='+16197276734', # this is our Twilio phone number
-            url='http://{}{}'.format(request.META['HTTP_HOST'],
-                                     reverse('connect_endpoint', args=[call.id])))
+    twilio.api.account.calls.create(
+        to=call.recipient_number, # call recipient first
+        from_='+16197276734', # this is our Twilio phone number
+        url='http://{}{}'.format(request.META['HTTP_HOST'],
+                                 reverse('connect_endpoint', args=[call.id])))
 
     return redirect(reverse('call_status', args=[call.id]))
 
