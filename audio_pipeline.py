@@ -144,7 +144,8 @@ def run_audio_pipeline(recording_file, call,
         phrase_times = {}
 
         print("searching for phrases:")
-        print("phrases")
+        print(phrases)
+
         for phrase in phrases:
             if len(phrase) == 0:
                 continue
@@ -215,9 +216,6 @@ def run_audio_pipeline(recording_file, call,
         print("done uploading transcript")
         call.transcript = json.dumps(words)
         call.save()
-
-    if temp_file:
-        remove(recording_path)
 
     print("FINISHED CALL %s" % key)
     display_url = "%s/alpha/backend_viewer/%s/"%("www.evoke.ai", call.twilio_recording_sid)

@@ -37,6 +37,7 @@ class Command(BaseCommand):
                 sleep(1)
                 continue
             m = json.loads(messages[0].body)
+
             message_handler = getattr(self, m['type'], None)
             if callable(message_handler):
                 try:
@@ -75,7 +76,7 @@ class Command(BaseCommand):
             print('{} - worker error'.format(timestamp()))
             return False
 
-    def twilio_call(self, *, twilio_rec, force_indexing, force_upload,
+    def twilio_call(self, *, twilio_rec, phrases, force_indexing, force_upload,
                     force_transcript):
         r = requests.get(twilio_rec['RecordingUrl'])
         if r.headers['Content-Type'] != 'audio/x-wav':
@@ -88,17 +89,18 @@ class Command(BaseCommand):
             print('saved to {}'.format(recording_path))
 
         call = TwilioCall.objects.get(twilio_recording_sid=sid)
+
         success, key = run_audio_pipeline(recording_path, call,
                                           do_indexing=force_indexing,
                                           upload_original=force_upload,
                                           do_transcripts=force_transcript,
                                           create_clips=True,
-                                          phrases=json.loads(call.phrases),
+                                          phrases=phrases,
                                           min_confidence=0.4)
         if success:
             unlink(recording_path)
-            print('PROCESSED CALL {}'.format(twilioData['RecordingSid']))
+            print('PROCESSED CALL {}'.format(twilio_rec))
             return True
         else:
-            print('ERROR PROCESSING CALL {}'.format(twilioData['RecordingSid']))
+            print('ERROR PROCESSING CALL {}'.format(twilio_rec))
             return False

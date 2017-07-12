@@ -87,11 +87,12 @@ def call(request):
     if call.recipient_name is None:
         call.recipient_name = call.recipient_number
     call.save()
+    # Make sure the call has phrases for the audio pipeline
 
 
     twilio.api.account.calls.create(
         to=call.recipient_number, # call recipient first
-        from_='+16197276734', # this is our Twilio phone number
+        from_=call.caller_number, # this is our Twilio phone number
         url='http://{}{}'.format(request.META['HTTP_HOST'],
                                  reverse('connect_endpoint', args=[call.id])))
 
@@ -115,10 +116,12 @@ def record_callback(request, call_id):
     call = TwilioCall.objects.get(id=call_id)
     if call is None:
         return HttpResponseNotFound('error: call not found.')
+    phrases = settings.KEY_PHRASES
     call.end_call(request.POST)
     recording_queue.send_message(MessageBody=json.dumps({
                 'type': 'twilio_call',
                 'data': { 'twilio_rec': request.POST,
+                          'phrases': phrases,
                           'force_indexing': False,
                           'force_upload': False,
                           'force_transcript': False
