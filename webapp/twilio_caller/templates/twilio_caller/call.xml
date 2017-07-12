@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Say>{{ call.caller_name }} has set up this call using Keystone, which will automatically take notes for you.  Connecting you to {{ call.caller_name }} now...</Say>
+    <Say>Hi there. {{ call.caller_name }} is using Evoke to automatically take
+        notes for you.
+        Connecting you to {{ call.caller_name }} after a few rings ...</Say>
     <Dial record="record-from-answer-dual"
           recordingStatusCallback="http://{{ request.META.HTTP_HOST }}{% url 'record_callback' call.id %}">{{ call.caller_number }}</Dial>
 </Response>

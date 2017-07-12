@@ -59,7 +59,11 @@ class TwilioCall(models.Model):
                                      default=RECORDING_UPLOADED)
 
     def begin_call(self):
-        assert self.state == self.NOT_INITIATED
+        if not settings.DEBUG:
+            assert self.state == self.NOT_INITIATED
+        else:
+            if self.state != self.NOT_INITIATED:
+                return
         self.call_begin = timezone.now()
         self.state = self.CALL_IN_PROGRESS
         self.save()

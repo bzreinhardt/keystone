@@ -181,4 +181,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 # Key phrases to search speech for
 
-KEY_PHRASES = ['action item', 'thats fascinating', 'I want to remember that', 'take a note on that']
+KEY_PHRASES = {'action item':{'type':'after'},
+               'thats fascinating':{'type':'before'},
+               'remember':{'type':'before'},
+               'take a note on that': {'type':'before'}}
