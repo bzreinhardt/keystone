@@ -3,7 +3,7 @@ from os import environ
 from google.cloud import storage
 import audio_tools
 from keyword_search import index_audio_url, audio_search
-from keystone_asr import upload_folder, transcribe_in_parallel
+from keystone_asr import upload_folder, transcribe_in_parallel, upload_files
 from pprint import pprint
 import json
 from utility import send_simple_message, remove_bad_chars
@@ -168,7 +168,7 @@ def run_audio_pipeline(recording_file, call,
                     mkdir(clip_dir)
 
                     print('creating clips')
-
+                clip_files = []
                 for i, time in enumerate(results['startTime']):
 
                     if phrases[phrase]['type']=='before':
@@ -178,13 +178,15 @@ def run_audio_pipeline(recording_file, call,
                         start_time = time
                         stop_time = time + DEFAULT_PHRASE_LENGTH_SEC
                     clip_file = "%s/%s_%d.wav"%(clip_dir, charless_phrase, i)
+                    clip_files.append(clip_file)
                     print("slicing file")
                     cut_file(recording_path, start_time=start_time,
                                              stop_time=stop_time,
                                              out_file=clip_file)
                     print("sliced file")
 
-                blob_names, urls = upload_folder(path.dirname(clip_dir), folder=path.basename(clip_dir), make_public=True)
+                blob_names, urls = upload_files(clip_files,
+                                                    make_public=True)
                 phrase_times[phrase]['slices'] = urls
                 shutil.rmtree(clip_dir)
 
