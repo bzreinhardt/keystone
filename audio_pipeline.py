@@ -106,31 +106,7 @@ def run_audio_pipeline(recording_file, call,
         print("skipping indexing")
 
 
-    if call.phrase_results:
-        results = json.loads(call.phrase_results)
-        for phrase in results:
-            if 'is_phrase' not in results[phrase]:
-                results[phrase]['is_phrase'] = [False]*len(results[phrase]['startTime'])
-            if 'whos' not in results[phrase]:
-                results[phrase]['whos'] = ['']*len(results[phrase]['startTime'])
-            if 'whats' not in results[phrase]:
-                results[phrase]['whats'] = ['']*len(results[phrase]['startTime'])
-            if 'wheres' not in results[phrase]:
-                results[phrase]['wheres'] = ['']*len(results[phrase]['startTime'])
-            if 'whens' not in results[phrase]:
-                results[phrase]['whens'] = ['']*len(results[phrase]['startTime'])
-            if 'whys' not in results[phrase]:
-                results[phrase]['whys'] = ['']*len(results[phrase]['startTime'])
-            for i, time in enumerate(results[phrase]['startTime']):
-                if any([len(x) > 0 for x in [results[phrase]['whos'][i],
-                                             results[phrase]['whats'][i],
-                                             results[phrase]['wheres'][i],
-                                             results[phrase]['whens'][i],
-                                             results[phrase]['whys'][i]]]):
-                    results[phrase]['is_phrase'][i] = True
-            call.save()
-    else:
-        print("no phrase resuls")
+
 
     if len(phrases) > 0:
 
@@ -191,6 +167,39 @@ def run_audio_pipeline(recording_file, call,
                 shutil.rmtree(clip_dir)
 
         call.phrase_results = json.dumps(phrase_times)
+
+        if call.phrase_results:
+            results = json.loads(call.phrase_results)
+            for phrase in results:
+                if 'is_phrase' not in results[phrase]:
+                    results[phrase]['is_phrase'] = [False] * len(
+                        results[phrase]['startTime'])
+                if 'whos' not in results[phrase]:
+                    results[phrase]['whos'] = [''] * len(
+                        results[phrase]['startTime'])
+                if 'whats' not in results[phrase]:
+                    results[phrase]['whats'] = [''] * len(
+                        results[phrase]['startTime'])
+                if 'wheres' not in results[phrase]:
+                    results[phrase]['wheres'] = [''] * len(
+                        results[phrase]['startTime'])
+                if 'whens' not in results[phrase]:
+                    results[phrase]['whens'] = [''] * len(
+                        results[phrase]['startTime'])
+                if 'whys' not in results[phrase]:
+                    results[phrase]['whys'] = [''] * len(
+                        results[phrase]['startTime'])
+                for i, time in enumerate(results[phrase]['startTime']):
+                    if any([len(x) > 0 for x in [results[phrase]['whos'][i],
+                                                 results[phrase]['whats'][i],
+                                                 results[phrase]['wheres'][i],
+                                                 results[phrase]['whens'][i],
+                                                 results[phrase]['whys'][i]]]):
+                        results[phrase]['is_phrase'][i] = True
+                call.save()
+        else:
+            print("no phrase resuls")
+
         call.save()
 
 

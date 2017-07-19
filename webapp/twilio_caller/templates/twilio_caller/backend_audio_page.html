@@ -2,14 +2,15 @@
 <script type="text/javascript">
     var audio_key = "{{audio_key}}"
 </script>
-<audio id="master_audio" preload="auto" src = {{audio_url}} autoplay="0" autostart="0">
+<audio id="master_audio" preload="auto" src = {{audio_url}} autostart="0" >
     <p> Your browser does not support the audio element </p> 
 </audio>
 /* phrases = [[phrase, clip_url, timestamp_in_master, confidence], [phrase, clip_url, timestamp_in_master, confidence], ...]
 */
 {% for phrase, values in phrases.items %}
     {% for value in values.times %}
-        <audio id="{{value.url}}" preload="auto" src = {{value.url}} autoplay="0" autostart="0">
+        <audio id="{{value.url}}" preload="auto" src = {{value.url}}
+               autoplay=0 autostart=0  type="audio/mpeg"  >
             <p> Your browser does not support the audio element </p>
         </audio>
     {% endfor %}
