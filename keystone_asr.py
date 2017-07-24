@@ -86,15 +86,16 @@ def upload_files(file_list, bucket_name='illiad-audio', make_public=False):
     bucket = client.get_bucket(bucket_name)
     blob_names = []
     urls = []
-    for i, file in enumerate(file_list):
+    for i, f in enumerate(file_list):
         progress_bar(i, len(file_list), text="uploading file:")
-        blob_name = os.path.split(file)[-2:-1]
+        f = os.path.abspath(f)
+        blob_name = "/".join(f.split("/")[-2:])
         blob = bucket.blob(blob_name)
-        with open(file, 'rb') as f:
+        with open(f, 'rb') as f:
             blob.upload_from_file(f)
         blob_names.append("gs://%s/%s" % (bucket_name, blob_name))
         if make_public:
-            print("making %d public" % blob_name)
+            print("making %s public" % blob_name)
             ##if i == 4:
             #    pdb.set_trace()
             blob.make_public()
