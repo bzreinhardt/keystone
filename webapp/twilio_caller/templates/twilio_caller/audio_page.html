@@ -10,9 +10,21 @@
 </div>
 <div>
     <b>Participants: </b>
+    <table style="padding: 10px;">
+        <tr>
+            <th> Name </th>
+            <th> Email </th>
+            <th> Phone Number </th>
+        </tr>
     {% for participant, value in participants.items %}
+        <tr>
+            <th> {{value.name}}</th>
+            <th> {{value.email}}</th>
+            <th> {{value.number}}</th>
+        </tr>
 
     {% endfor %}
+    </table>
 </div>
 <div>
     <button type="button" onclick = "setTime(0, 'master_audio');" > Play from

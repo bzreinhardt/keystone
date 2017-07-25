@@ -33,7 +33,7 @@ class TwilioCall(models.Model):
         ('CF', 'Call Finished'),
         ('PP', 'Processing in Progress'),
         ('TC', 'Processing Complete'),
-        ('FPC', 'Final Processing Complete')
+        ('FP', 'Final Processing Complete')
     )
 
     NOT_INITIATED = 'NI'
@@ -41,7 +41,7 @@ class TwilioCall(models.Model):
     CALL_FINISHED = 'CF'
     PROCESSING_IN_PROGRESS = 'PP'
     PROCESSING_COMPLETE = 'PC'
-    FINAL_PROCESSING_COMPLETE = 'FPC'
+    FINAL_PROCESSING_COMPLETE = 'FP'
 
     state = models.CharField(max_length=2, choices=CALL_STATES,
                              default=NOT_INITIATED)

@@ -153,9 +153,15 @@ def upload_uberconf(request):
         phrases = {kw.strip(): {'type': 'after'}
                    for kw in request.POST['keywords'].split(',')}
         call.phrases = json.dumps(phrases)
-        call.participants = request.POST['participants']
+
+
         # Set the people in the call to be the to and from of the call
         participants=request.POST['participants'].split(',')
+        call_participants = {}
+        for participant in participants:
+            call_participants[participant] = {'name':participant}
+        call.participants = json.dumps(call_participants)
+
         if len(participants) > 0:
             call.caller_name = participants[0]
         else:
@@ -206,7 +212,7 @@ def viewer(request, key, show_confidence=None):
     transcript_type = request.GET.get('transcript_type','transcript')
     call = TwilioCall.objects.get(twilio_recording_sid=key)
     content_id = call.audio_index_id
-    if call.state != 'FPC':
+    if call.state != TwilioCall.FINAL_PROCESSING_COMPLETE:
         return render(request,'twilio_caller/processing_page.html')
 
     if request.method == "POST":
@@ -281,9 +287,38 @@ def viewer(request, key, show_confidence=None):
 
                 print_phrases[phrase]['times'].append(out_dict)
 
+    call_participants = {}
+    try:
+        call_participants = json.loads(call.participants)
+    except:
+        #Pull the info out of different parts
+        call_participants = {'caller':{'name':"",
+                                       'email': "",
+                                       'number': ""},
+                             'recipiant':{'name':"",
+                                       'email': "",
+                                       'number': ""}}
+        if call.caller_name is not None:
+            call_participants['caller']['name'] = call.caller_name
+        if call.caller_email is not None:
+            call_participants['caller']['email'] = call.caller_email
+        if call.caller_number is not None:
+            call_participants['caller']['number'] = call.caller_number
+        if call.recipient_name is not None:
+            call_participants['recipiant']['name'] = call.recipient_name
+        if call.recipient_email is not None:
+            call_participants['recipiant']['email'] = call.recipient_email
+        if call.recipient_number is not None:
+            call_participants['recipiant']['number'] = call.recipient_number
+    print("call participants")
+    print(call_participants)
+
+
+
     return render(request, 'twilio_caller/audio_page.html', {
         "lines":lines, "audio_key":key, "audio_url":audio_url,
-        "keywords":keywords, "phrases":print_phrases})
+        "keywords":keywords, "phrases":print_phrases,
+        "participants":call_participants})
 
 
 def backend_viewer(request, key):
