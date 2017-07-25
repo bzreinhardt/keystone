@@ -38,11 +38,8 @@ var popOverSettings = {
 // TODO Make this work with popovers because it would be cooler
 //$('body').popover(popOverSettings);
 
-var audios = {'master_audio': document.getElementById('master_audio')};
-		
-for (var audio_id in audios) {
-	//audios[audio_id].addEventListener("canplaythrough", function() {this.play();});
-}
+var audios = {};
+
 
 function pauseAllAudio(){
 	for (var audio_id in audios) {
@@ -51,12 +48,13 @@ function pauseAllAudio(){
 }
 
 function setTime(curTime, audio_id){
+    console.log("Setting time");
 	pauseAllAudio();
 	audios[audio_id].currentTime = curTime; 
 	audios[audio_id].play();
 }
 
-window.onload = function(){ pauseAllAudio() }
+
 
 function insertAfter( newNode, referenceNode )
 {
@@ -237,4 +235,5 @@ $('#keyword').submit(function() {
 document.onmouseup = getSelectedElementTags;
 document.onkeyup = getSelectedElementTags
 pauseAllAudio();
+window.onload = function(){ pauseAllAudio() }
 //document.onkeyup = getSelectionText;

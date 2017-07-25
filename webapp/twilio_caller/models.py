@@ -31,15 +31,17 @@ class TwilioCall(models.Model):
         ('NI', 'Not Initiated'),
         ('CP', 'Call in Progress'),
         ('CF', 'Call Finished'),
-        ('TP', 'Transcription in Progress'),
-        ('TC', 'Transcription Complete'),
+        ('PP', 'Processing in Progress'),
+        ('TC', 'Processing Complete'),
+        ('FPC', 'Final Processing Complete')
     )
 
     NOT_INITIATED = 'NI'
     CALL_IN_PROGRESS = 'CP'
     CALL_FINISHED = 'CF'
-    TRANSCRIPTION_IN_PROGRESS = 'TP'
-    TRANSCRIPTION_COMPLETE = 'TC'
+    PROCESSING_IN_PROGRESS = 'PP'
+    PROCESSING_COMPLETE = 'PC'
+    FINAL_PROCESSING_COMPLETE = 'FPC'
 
     state = models.CharField(max_length=2, choices=CALL_STATES,
                              default=NOT_INITIATED)
@@ -78,14 +80,18 @@ class TwilioCall(models.Model):
         self.twilio_recording_url = twilio_data['RecordingUrl']
         self.save()
 
-    def begin_transcription(self):
-        assert self.state == self.CALL_FINISHED
-        self.state = self.TRANSCRIPTION_IN_PROGRESS
+    def begin_processing(self):
+        #assert self.state == self.CALL_FINISHED
+        self.state = self.PROCESSING_IN_PROGRESS
         self.save()
 
-    def finish_transcription(self):
-        assert self.state == self.TRANSCRIPTION_IN_PROGRESS
-        self.state = self.TRANSCRIPTION_COMPLETE
+    def finish_processing(self):
+        #assert self.state == self.PROCESSING_IN_PROGRESS
+        self.state = self.PROCESSING_COMPLETE
+        self.save()
+
+    def finalize_processing(self):
+        self.state = self.FINAL_PROCESSING_COMPLETE
         self.save()
 
     def __str__(self):

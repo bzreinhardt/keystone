@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load static %}
 <title></title> 
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,12 +16,18 @@
 h1 {
 background-color: lightgrey;
 } </style>
+    <head>
+  <title>evoke.ai | notes on calls for you</title>
+  <link rel="stylesheet" href="{% static '/twilio_caller/style.css' %}" />
+<style>
+
+th, td {
+    padding: 10px;
+}
+</style>
 </head>
 
 <body style=\"margin:20;padding:0\">
 
-<div id="popover-content" class="hide"> 
-<input type="text" name="email" id="email"/>
-</div>
 
 {% block body %}{% endblock %}

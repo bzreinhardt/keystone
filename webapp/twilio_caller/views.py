@@ -206,6 +206,9 @@ def viewer(request, key, show_confidence=None):
     transcript_type = request.GET.get('transcript_type','transcript')
     call = TwilioCall.objects.get(twilio_recording_sid=key)
     content_id = call.audio_index_id
+    if call.state != 'FPC':
+        return render(request,'twilio_caller/processing_page.html')
+
     if request.method == "POST":
         keyword = request.POST['search-term']
         print("searching for %s"%keyword)
@@ -223,6 +226,8 @@ def viewer(request, key, show_confidence=None):
         else:
             for i, confidence in enumerate(keyword_results['P']):
                 keywords[str(i)] = {}
+                keywords[str(i)]['keyword'] = keyword
+                keywords[str(i)]['confidence'] = confidence
                 keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
                 keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
     if call.transcript:
@@ -245,7 +250,8 @@ def viewer(request, key, show_confidence=None):
             print_phrases[phrase] = {'times':[]}
 
             for i, time in enumerate(phrase_results[phrase]['startTime']):
-
+                if 'is_phrase' not in phrase_results[phrase]:
+                    continue
                 if phrase_results[phrase]['is_phrase'][i] is False or phrase_results[phrase]['is_phrase'][i] == 'False':
                     continue
                 if phrases[phrase]['type']=='before':
@@ -305,7 +311,9 @@ def backend_viewer(request, key):
             else:
                 for i, confidence in enumerate(keyword_results['P']):
                     keywords[str(i)] = {}
+                    keywords[str(i)]['keyword'] = keyword
                     keywords[str(i)]['starttime'] = keyword_results['startTime'][i]
+                    keywords[str(i)]['confidence'] = confidence
                     keywords[str(i)]['hex_confidence'] = confidence_to_hex(confidence)
         elif 'phrase-submit' in request.POST:
             if call.phrase_results:
@@ -350,6 +358,20 @@ def backend_viewer(request, key):
 
                 call.phrase_results = json.dumps(phrase_results)
                 call.save()
+                if "final_values" in request.POST:
+                    # Notify the person it belongs to
+                    if call.caller_email is not None:
+                        print("Emailing %s" % call.caller_email)
+                    elif  call.caller_number is not None:
+                        #Text them
+                        print("Texting %s"%call.caller_number)
+                    if call.recipient_email is not None:
+                        print("Emailing %s" % call.recipient_email)
+                    elif call.recipient_number is not None:
+                        print("Texting %s" % call.recipient_number)
+
+                    call.finalize_processing()
+
 
 
     if call.transcript:

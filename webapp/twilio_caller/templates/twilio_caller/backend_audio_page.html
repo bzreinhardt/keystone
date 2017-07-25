@@ -2,15 +2,18 @@
 <script type="text/javascript">
     var audio_key = "{{audio_key}}"
 </script>
-<audio id="master_audio" preload="auto" src = {{audio_url}} autostart="0" >
+
+<audio id="master_audio" preload="none" src = {{audio_url}} autostart=0
+       autoplay=False type="audio/mpeg">
     <p> Your browser does not support the audio element </p> 
 </audio>
+
 /* phrases = [[phrase, clip_url, timestamp_in_master, confidence], [phrase, clip_url, timestamp_in_master, confidence], ...]
 */
 {% for phrase, values in phrases.items %}
     {% for value in values.times %}
-        <audio id="{{value.url}}" preload="auto" src = {{value.url}}
-               autoplay=0 autostart=0  type="audio/mpeg"  >
+        <audio id="{{value.url}}" preload="none" src = {{value.url}}
+               autoplay=False autostart=0  type="audio/mpeg"  >
             <p> Your browser does not support the audio element </p>
         </audio>
     {% endfor %}
@@ -35,11 +38,30 @@
      {% csrf_token %}
 </form>
 {% if keywords|length > 0 %}
-    Keyword Times
+    <h3>Search Results:</h3>
+    <table style="padding: 10px;">
+        <tr>
+            <th> Phrase </th>
+            <th> Play </th>
+            <th> Timestamp </th>
+            <th> Confidence </th>
+        </tr>
+
 
     {% for key, keyword in keywords.items %}
-        <a onClick="setTime({{keyword.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{keyword.hex_confidence}}"> {{keyword.starttime}} </a>
-    {% endfor %}
+        <tr>
+        <th>
+            "{{keyword.keyword}}"
+        </th>
+        <th>
+        <a onClick="setTime({{keyword.starttime}}, 'master_audio');"
+           style="cursor: pointer; cursor: hand; background-color: {{keyword.hex_confidence}}"> Play Phrase </a>
+        </th>
+        <th>{{keyword.starttime}}</th>
+            <th>{{keyword.confidence}}</th>
+        </tr>
+            {% endfor %}
+    </table>
 {% endif %}
 <br>
 
@@ -83,11 +105,14 @@
         {% endfor %}
     {% endfor %}
 </table>
+    <div>Final Values? <input type="checkbox" name="final_values" value="True">
+    </div>
     <div class="input submit">
-                <input type="submit" name="phrase-submit" value="Submit" />
-            </div>
+        <input type="submit" name="phrase-submit" value="Submit" />
+    </div>
      {% csrf_token %}
 </form>
+
 
 
 <br>
@@ -102,11 +127,17 @@
 {% load static from staticfiles %}
 <script src="{% static '/js/mindstone_ui.js' %}"></script>
 <script>
+    master_audio = document.getElementById("master_audio");
+    audios['master_audio'] = master_audio;
+    master_audio.autoplay = false;
+    master_audio.pause();
     {% for phrase, values in phrases.items %}
         {% for value in values.times %}
             var phrase_elem = document.getElementById('{{value.url}}');
             phrase_elem.addEventListener("canplaythrough", function() {this.play();});
             audios['{{value.url}}'] = phrase_elem;
+            phrase_elem.autoplay = false;
+            phrase_elem.pause();
         {% endfor %}
     {% endfor %}
 </script>

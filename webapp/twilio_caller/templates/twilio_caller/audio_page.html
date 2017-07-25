@@ -1,11 +1,27 @@
 {% extends "twilio_caller/header.html" %} {% block body %}<body>
 <script type="text/javascript"> var audio_key = "{{audio_key}}" </script>
-<audio id="master_audio" preload="auto" src = {{audio_url}}> 
+<audio id="master_audio" preload="none" src = {{audio_url}} autostart=0
+       autoplay=False type="audio/mpeg">
     <p> Your browser does not support the audio element </p> 
 </audio>
 <br>
-<h1> <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button> </h1> <br>
-<h3>Keyword Search:</h3>
+<div>
+    <h1>Conversation Explorer</h1>
+</div>
+<div>
+    <b>Participants: </b>
+    {% for participant, value in participants.items %}
+
+    {% endfor %}
+</div>
+<div>
+    <button type="button" onclick = "setTime(0, 'master_audio');" > Play from
+        Beginning
+    </button>
+ <button type="button" onclick = "pauseAllAudio();" > Stop Audio </button>  <br>
+</div>
+<div>
+    <h3>Keyword Search:</h3>
 
  <form id="keyword" action="" method="POST" onsubmit="keywordSubmit();">
 
@@ -21,41 +37,55 @@
             </div>
      {% csrf_token %}
 </form>
+    </div>
+<div>
 {% if keywords|length > 0 %}
-    Keyword Times
+<h3>Search Results:</h3>
+    <table style="padding: 10px;">
+        <tr>
+            <th> Phrase </th>
+            <th> Play </th>
+            <th> Timestamp </th>
+            <th> Confidence </th>
+        </tr>
+
 
     {% for key, keyword in keywords.items %}
-        <a onClick="setTime({{keyword.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color: {{keyword.hex_confidence}}"> {{keyword.starttime}} </a>
-    {% endfor %}
+        <tr>
+        <th>
+            "{{keyword.keyword}}"
+        </th>
+        <th>
+        <a onClick="setTime({{keyword.starttime}}, 'master_audio');"
+           style="cursor: pointer; cursor: hand; background-color: {{keyword.hex_confidence}}"> Play Phrase </a>
+        </th>
+        <th>{{keyword.starttime}}</th>
+            <th>{{keyword.confidence}}</th>
+        </tr>
+            {% endfor %}
+    </table>
 {% endif %}
+</div>
 <br>
 <h3>Key Phrases:</h3>
 <table style="border-spacing: 10px;">
     <tr>
-        <th style="text-align:center; padding: 10px;">Clip</th>
-        <th style="text-align:center; padding: 10px;" align="center">Confidence</th>
+        <th style="text-align:center; padding: 10px;">Key Phrase</th>
         <th style="text-align:center; padding: 10px;" align="center">Note</th>
-        <th style="text-align:center; padding: 10px;" align="center">Who</th>
-        <th style="text-align:center; padding: 10px;" align="center">What</th>
-        <th style="text-align:center; padding: 10px;" align="center">Where</th>
-        <th style="text-align:center; padding: 10px;" align="center">When</th>
-        <th style="text-align:center; padding: 10px;" align="center">Why</th>
+
     </tr>
     {% for phrase, values in phrases.items %}
         <tr>
-            <th>{{phrase}}</th>
+            <th>"{{phrase}}"</th>
         </tr>
         {% for value in values.times %}
             <tr>
 
-                <td style="text-align:center; padding: 10px;" align="center"> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></td>
-                <td style="text-align:center; padding: 10px;" align="center"> {{value.confidence}} </td>
+                <td style="text-align:center; padding: 10px;" align="center"> <a
+                        onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play Clip </a> <br></td>
+
                 <td style="text-align:center; padding: 10px;" align="center"> {{value.note}} </td>
-                <td style="text-align:center; padding: 10px;" align="center"> {{value.who}} </td>
-                <td style="text-align:center; padding: 10px;" align="center"> {{value.what}} </td>
-                <td style="text-align:center; padding: 10px;" align="center"> {{value.where}} </td>
-                <td style="text-align:center; padding: 10px;" align="center"> {{value.when}} </td>
-                <td style="text-align:center; padding: 10px;" align="center"> {{value.why}} </td>
+
             </tr>
         {% endfor %}
     {% endfor %}
@@ -71,5 +101,11 @@
   </body>
 {% load static from staticfiles %}
 <script src="{% static '/js/mindstone_ui.js' %}"></script>
+<script>
+    master_audio = document.getElementById("master_audio");
+    audios['master_audio'] = master_audio;
+    master_audio.autoplay = false;
+    master_audio.pause();
+   </script>
 </html>
 {% endblock %}
