@@ -61,6 +61,24 @@ input[type="text"] {
     padding: 4px;
 }
 
+input[type="tel"] {
+    width: calc(100%);
+    font-size: 18px;
+    margin-bottom: 10px;
+    margin-top: 2px;
+    box-sizing: border-box;
+    padding: 4px;
+}
+
+input[type="email"] {
+    width: calc(100%);
+    font-size: 18px;
+    margin-bottom: 10px;
+    margin-top: 2px;
+    box-sizing: border-box;
+    padding: 4px;
+}
+
 .cta {
     /* size, shape, color */
     display: block;
@@ -84,6 +102,12 @@ input[type="text"] {
 
 .cta-call {
     margin: 40px auto 0;
+}
+
+.cta-tour {
+    width:250px;
+    background-color: #add8e6;
+    margin: auto;
 }
 
 .cta-upload {

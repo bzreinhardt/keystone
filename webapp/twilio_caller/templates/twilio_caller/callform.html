@@ -4,18 +4,25 @@
 <head>
   <title>evoke.ai | notes on calls for you</title>
   <link rel="stylesheet" href="{% static '/twilio_caller/style.css' %}" />
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <script
+          src="{% static '/twilio_caller/bootstrap-tour-standalone.min.js' %}"></script>
+  <link
+          href="{% static '/twilio_caller/bootstrap-tour-standalone.min.css' %}" rel="stylesheet"/>
+
 </head>
 
 <body>
   <h1>
     <div class="container name">evoke.ai</div>
-    <div class="container">We'll take the notes on your next call.</div>
+    <div class="container">Hold that thought.</div>
   </h1>
   <div class="container">
-    <p>Use the form below to place a call, and afterwards, you and your
-      correspondant will both receive an email with notes on your
-      conversation, including a summary of key points, deadlines, and
-      action items you&nbsp;discussed.</p>
+
+    <button id="tutorial" class="cta cta-tour"
+            onClick="if(!tour.ended()){tour.init();tour.start();}else{tour.restart();}">How to use
+    Evoke</button>
+
     {% if code %}
     <h3>
       Verification Code: <b>{{code}}</b>
@@ -23,7 +30,7 @@
     {% endif %}
     <form method="POST" action="{% url 'call' %}" enctype="multipart/form-data">
       <div class="dialer-form">
-        <div class="caller">
+        <div class="caller" id="caller">
           <h2>You are...</h2>
           <div>
             <label for="caller-name">Your name</label>
@@ -45,7 +52,7 @@
 
           </div>
         </div>
-        <div class="recipient">
+        <div class="recipient" id="recipiant">
           <h2>You're calling...</h2>
           <div>
             <label for="recipient-name">Their name</label>
@@ -69,11 +76,25 @@
 
       </div>
 
-      <input class="cta cta-call" type="submit" value="Go!">
+      <input class="cta cta-call" type="submit" value="Go!" id="go">
       <div class="disclaimer">
         <h4>The magic may take a bit. Sit tight! We'll text you when everything
           is
           done. </h4>
+      </div>
+      <div class="alternative" id="alternative">
+        <h3>
+          For non-phone conversations, send a recording to <a
+                href="mailto:notes@evoke.ai">notes@evoke.ai</a>
+
+        </h3>
+      </div>
+      <div class="help" id="help">
+        <h3>
+          For help, email <a
+                href="mailto:ben@evoke.ai">ben@evoke.ai</a>
+
+        </h3>
       </div>
 
 
@@ -82,4 +103,47 @@
     </form>
   </div>
 </body>
+
+  <script>
+  // Instance the tour
+    var tour = new Tour({
+    steps: [
+      {
+        element: "#tutorial",
+        title: "How to use key phrases",
+        content: "When you use specific phrases in a conversation,\nEvoke\nmakes a note for you. \n The default phrases are:\n'Action Item'  'That’s fascinating'  'Remember'  'Take a note of that'"
+      },
+      {
+        element: "#caller",
+        title: "Enter your info",
+        content: "Enter your information here"
+      },
+      {
+        element: "#recipiant",
+        title: "Enter the other person's info",
+        content: "Enter their information here"
+      },
+      {
+        element: "#go",
+        title: "Press Go!",
+        content: "The dialer will first call them and then call you"
+      },
+      {
+       element: "#tutorial",
+        title: "Initial Use",
+        content: "The first time you use Evoke, it will call you to verify your number. A spot to enter the verification code will appear here"
+       },
+       {
+       element: "#alternative",
+        title: "Use your own recording",
+        content: "If your conversation is in person, or via video chat, send a recording to the automated pipeline at notes@evoke.ai"
+       }
+    ]});
+
+    // Initialize the tour
+
+
+  </script>
+
+
 </html>

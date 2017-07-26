@@ -8,7 +8,7 @@
 <div>
     <h1>Conversation Explorer</h1>
 </div>
-<div>
+<div id="participants">
     <b>Participants: </b>
     <table style="padding: 10px;">
         <tr>
@@ -113,6 +113,32 @@
   </body>
 {% load static from staticfiles %}
 <script src="{% static '/js/mindstone_ui.js' %}"></script>
+<script src="{% static '/js/bootstrap-tour.min.js' %}"></script>
+<link href="{% static '/css/bootstrap-tour.min.css %}" rel="stylesheet">
+
+<script>
+    // Instance the tour
+    var tour = new Tour({
+    steps: [
+      {
+        element: "#participants",
+        title: "Title of my step",
+        content: "Content of my step"
+      },
+      {
+        element: "#my-other-element",
+        title: "Title of my step",
+        content: "Content of my step"
+      }
+    ]});
+
+    // Initialize the tour
+    tour.init();
+
+    // Start the tour
+    tour.start();
+</script>
+
 <script>
     master_audio = document.getElementById("master_audio");
     audios['master_audio'] = master_audio;
