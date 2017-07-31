@@ -7,10 +7,11 @@
 
   <body>
     <div class="wrapper">
-      <h2>
-        <span class="meeting">Meeting on</span>
+        <span class="notes">Notes from your</span>
+        <span class="meeting">meeting</span>
         <span class="on">on</span>
-        <span class="date">{{ date }}</span>
+        <b><span class="date">{{ date }}</span></b>
+        <br>
         <br>
         <span class="participants">
           <b>Participants: </b>
@@ -31,9 +32,8 @@
           </table>
         </span>
 
-      </h2>
       {% for phrase in phrases %}
-      <h2>{{ phrase.text.capitalize }}</h2>
+      <h3>{{ phrase.text.capitalize }}</h3>
       <ul>
         {% for item in phrase.items %}
         <li>{{ item }}</li>
