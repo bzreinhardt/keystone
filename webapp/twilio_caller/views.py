@@ -199,7 +199,7 @@ def notes(request, call_id):
     keywords = json.loads(call.phrase_results)
     phrases = [{'text': k,
                 'items': list(filter(None, keywords[k].get('notes', [])))}
-               for k in json.loads(call.phrases).keys()]
+               for k in json.loads(call.phrases).keys() if k not in BAD_PHRASES]
 
     return render(request, 'twilio_caller/notes.html', {
         'participants': 'Ben and Noah',
