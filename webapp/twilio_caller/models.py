@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+import json
 
 class TwilioCall(models.Model):
     caller_name = models.TextField()
@@ -93,6 +94,32 @@ class TwilioCall(models.Model):
     def finalize_processing(self):
         self.state = self.FINAL_PROCESSING_COMPLETE
         self.save()
+
+    def get_participants(self):
+        call_participants = {}
+        try:
+            call_participants = json.loads(self.participants)
+        except:
+            # Pull the info out of different parts
+            call_participants = {'caller': {'name': "",
+                                            'email': "",
+                                            'number': ""},
+                                 'recipiant': {'name': "",
+                                               'email': "",
+                                               'number': ""}}
+            if self.caller_name is not None:
+                call_participants['caller']['name'] = self.caller_name
+            if self.caller_email is not None:
+                call_participants['caller']['email'] = self.caller_email
+            if self.caller_number is not None:
+                call_participants['caller']['number'] = self.caller_number
+            if self.recipient_name is not None:
+                call_participants['recipiant']['name'] = self.recipient_name
+            if self.recipient_email is not None:
+                call_participants['recipiant']['email'] = self.recipient_email
+            if self.recipient_number is not None:
+                call_participants['recipiant']['number'] = self.recipient_number
+        return call_participants
 
     def __str__(self):
         if not self.call_begin:

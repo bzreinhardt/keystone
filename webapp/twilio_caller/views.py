@@ -200,9 +200,11 @@ def notes(request, call_id):
     phrases = [{'text': k,
                 'items': list(filter(None, keywords[k].get('notes', [])))}
                for k in json.loads(call.phrases).keys() if k not in BAD_PHRASES]
-
+    participants = call.get_participants()
+    print("participants are:")
+    print(participants)
     return render(request, 'twilio_caller/notes.html', {
-        'participants': 'Ben and Noah',
+        'participants': participants,
         'date': call.call_begin.strftime('%a %d %b %Y'),
         'phrases': phrases,
         })
@@ -287,29 +289,7 @@ def viewer(request, key, show_confidence=None):
 
                 print_phrases[phrase]['times'].append(out_dict)
 
-    call_participants = {}
-    try:
-        call_participants = json.loads(call.participants)
-    except:
-        #Pull the info out of different parts
-        call_participants = {'caller':{'name':"",
-                                       'email': "",
-                                       'number': ""},
-                             'recipiant':{'name':"",
-                                       'email': "",
-                                       'number': ""}}
-        if call.caller_name is not None:
-            call_participants['caller']['name'] = call.caller_name
-        if call.caller_email is not None:
-            call_participants['caller']['email'] = call.caller_email
-        if call.caller_number is not None:
-            call_participants['caller']['number'] = call.caller_number
-        if call.recipient_name is not None:
-            call_participants['recipiant']['name'] = call.recipient_name
-        if call.recipient_email is not None:
-            call_participants['recipiant']['email'] = call.recipient_email
-        if call.recipient_number is not None:
-            call_participants['recipiant']['number'] = call.recipient_number
+    call_participants = call.get_participants()
     print("call participants")
     print(call_participants)
 
