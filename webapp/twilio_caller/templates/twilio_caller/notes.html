@@ -44,5 +44,12 @@
       </ul>
       {% endfor %}
     </div>
+    <br>
+  <div>Explore the conversation at
+    <a href="http://{{request.META.HTTP_HOST}}/alpha/viewer/{{call.twilio_recording_sid}}/">{{request.META.HTTP_HOST}}/viewer/{{call.twilio_recording_sid}}/</a></div>
+  <br>
+  <div><i>Was that useful? Any ways we can improve? Let us know what you
+    think by
+    replying to this email.</i> </div>
   </body>
 </html>

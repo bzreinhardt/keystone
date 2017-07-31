@@ -207,6 +207,7 @@ def notes(request, call_id):
         'participants': participants,
         'date': call.call_begin.strftime('%a %d %b %Y'),
         'phrases': phrases,
+        'call': call,
         })
 
 def viewer(request, key, show_confidence=None):
