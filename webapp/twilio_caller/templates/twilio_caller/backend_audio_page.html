@@ -78,6 +78,7 @@
         <th>Confidence</th>
         <th>Clip</th>
         <th>Note</th>
+        <th>Speaker</th>
         <th>Who</th>
         <th>What</th>
         <th>Where</th>
@@ -96,6 +97,9 @@
                 <th> <a onClick="setTime({{value.starttime}}, 'master_audio');" style="cursor: pointer; cursor: hand; background-color:"> Play </a> <br></th>
 
                 <th> <input type="text" name="{{phrase}}_{{value.keytime}}_note"> </th>
+                <th>
+                    <input type="text"
+                           name="{{phrase}}_{{value.keytime}}_speaker"></th>
                 <th> <input type="text" name="{{phrase}}_{{value.keytime}}_who"> </th>
                 <th> <input type="text" name="{{phrase}}_{{value.keytime}}_what"> </th>
                 <th> <input type="text" name="{{phrase}}_{{value.keytime}}_where"> </th>

@@ -192,7 +192,7 @@ def upload_uberconf(request):
         return render(request, 'twilio_caller/upload_uberconf.html')
 
 def notes(request, call_id):
-    call = TwilioCall.objects.get(id=call_id)
+    call = TwilioCall.objects.get(twilio_recording_sid=call_id)
     if call is None:
         return HttpResponseNotFound('error: call not found.')
 

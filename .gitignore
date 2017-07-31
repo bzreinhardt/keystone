@@ -12,9 +12,23 @@ db.sqlite3
 \#*\#
 .\#*
 
+# vim
+*.swp
+
+# pycharm
+*.idea*
+
 # sed
 *.bak
+
+#django
+*migrations*
 
 # data directories
 amicorpus/
 amicorp_generated_crosstalk_data/
+
+# experiments
+experimental*
+example*
+
