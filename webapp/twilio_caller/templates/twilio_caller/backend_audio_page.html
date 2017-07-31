@@ -3,8 +3,8 @@
     var audio_key = "{{audio_key}}"
 </script>
 
-<audio id="master_audio" preload="none" src = {{audio_url}} autostart=0
-       autoplay=False type="audio/mpeg">
+<audio id="master_audio" preload="none" src = {{audio_url}}
+        type="audio/mpeg">
     <p> Your browser does not support the audio element </p> 
 </audio>
 
@@ -13,7 +13,7 @@
 {% for phrase, values in phrases.items %}
     {% for value in values.times %}
         <audio id="{{value.url}}" preload="none" src = {{value.url}}
-               autoplay=False autostart=0  type="audio/mpeg"  >
+                 type="audio/mpeg"  >
             <p> Your browser does not support the audio element </p>
         </audio>
     {% endfor %}
