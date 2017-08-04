@@ -46,12 +46,10 @@ def wait_until_index_ready(deepgram_id, retries = 0):
     #if len(recording_url) == 0:
     #    raise ValueError('index_audio_until_read:need a valid recording_url')
     tries = 0
-    #deepgram_id = index_audio_url(recording_url)
-    print("indexed audio url")
     wait_time = 0
 
     while wait_time < MAX_WAIT_TIME_SEC and tries <= retries:
-        status = get_indexing_status(deepgram_id)
+        status = json.loads(get_indexing_status(deepgram_id))
         print(status)
         if 'status' in status:
             if status['status'] == 'done':
