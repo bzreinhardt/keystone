@@ -47,6 +47,7 @@ def index_audio_until_ready(recording_url, retries = 0):
         raise ValueError('index_audio_until_read:need a valid recording_url')
     tries = 0
     deepgram_id = index_audio_url(recording_url)
+    print("indexed audio url")
     wait_time = 0
 
     while wait_time < MAX_WAIT_TIME_SEC and tries <= retries:
@@ -55,6 +56,8 @@ def index_audio_until_ready(recording_url, retries = 0):
         if test['error'] is None:
             break
         else:
+            if test['error'] == 'invalid contentID / userID':
+                deepgram_id = index_audio_url(recording_url)
             sleep(FAIL_SLEEP_SEC)
             wait_time = wait_time + FAIL_SLEEP_SEC
             if wait_time >= MAX_WAIT_TIME_SEC:

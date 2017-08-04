@@ -32,6 +32,7 @@ class Command(BaseCommand):
             QueueName=settings.RECORDING_QUEUE)
 
         while True:
+            print ("getting a message")
             messages = recording_queue.receive_messages(MaxNumberOfMessages=1)
             if len(messages) == 0:
                 sleep(1)
