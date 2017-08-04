@@ -35,9 +35,39 @@ def extract_audio(file):
         return file, False
     else:
         outfile = "%s/%s.wav" % (dir_path, filename)
+        if path.isfile(outfile):
+            print("file already converted")
+            return outfile, True
         command = "ffmpeg -i %s -ab 160k -ac 2 -ar 44100 -vn -y %s" % (file, outfile)
         subprocess.call(command, shell=True)
         return outfile, True
+
+def index_audio_until_ready(recording_url, retries = 0):
+    if len(recording_url) == 0:
+        raise ValueError('index_audio_until_read:need a valid recording_url')
+    tries = 0
+    deepgram_id = index_audio_url(recording_url)
+    wait_time = 0
+
+    while wait_time < MAX_WAIT_TIME_SEC and tries <= retries:
+        test = audio_search(call.audio_index_id, 'test')
+        print(test)
+        if test['error'] is None:
+            break
+        else:
+            sleep(FAIL_SLEEP_SEC)
+            wait_time = wait_time + FAIL_SLEEP_SEC
+            if wait_time >= MAX_WAIT_TIME_SEC:
+                tries = tries + 1
+                deepgram_id = index_audio_url(call.recording_url)
+                wait_time = 0
+    if wait_time >= MAX_WAIT_TIME_SEC:
+        print("Indexing failed for %s" % recording_url)
+        email_text = "Failed to index audio for %s" % recording_url
+        send_simple_message(subject='audio pipeline failure!',
+                            text=email_text)
+        return (False, recording_url)
+    return deepgram_id
 
 
 def run_audio_pipeline(recording_file, call,
@@ -75,33 +105,14 @@ def run_audio_pipeline(recording_file, call,
     else:
         print("skipping upload")
 
+    print("do idexing is ")
+    print(do_indexing)
+    print("index id is: %s"%call.audio_index_id)
+    #pdb.set_trace
     if do_indexing or call.audio_index_id is None:
-        tries = 0
-        print("Indexing call %s" % call.twilio_recording_sid)
-        deepgram_id = index_audio_url(call.recording_url)
+        deepgram_id = index_audio_until_ready(call.recording_url)
         call.audio_index_id = deepgram_id
         call.save()
-        wait_time = 0
-
-        while wait_time < MAX_WAIT_TIME_SEC and tries <= retries:
-            test = audio_search(call.audio_index_id, 'test')
-            if test['error'] is None:
-                break
-            else:
-                sleep(FAIL_SLEEP_SEC)
-                wait_time = wait_time + FAIL_SLEEP_SEC
-                if wait_time >= MAX_WAIT_TIME_SEC:
-                    tries = tries + 1
-                    deepgram_id = index_audio_url(call.recording_url)
-                    call.audio_index_id = deepgram_id
-                    call.save()
-                    wait_time = 0
-        if wait_time >= MAX_WAIT_TIME_SEC:
-            print("Indexing failed for %s" % key)
-            email_text = "Failed to index audio for %s" % key
-            send_simple_message(subject='audio pipeline failure!',
-                                text=email_text)
-            return(False, key)
     else:
         print("skipping indexing")
 
@@ -109,14 +120,9 @@ def run_audio_pipeline(recording_file, call,
 
 
     if len(phrases) > 0:
-
+        #TODO need to do something smart based on whether it's indexing at all
         call.phrases = json.dumps(phrases)
-        index_ready = False
-        while not index_ready:
-            test = audio_search(call.audio_index_id, 'test')
-            if test['error'] is None:
-                index_ready = True
-            sleep(2)
+        deepgram_id = index_audio_until_ready(call.recording_url)
         phrase_times = {}
 
         print("searching for phrases:")

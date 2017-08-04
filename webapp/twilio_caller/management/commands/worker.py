@@ -41,6 +41,8 @@ class Command(BaseCommand):
             message_handler = getattr(self, m['type'], None)
             if callable(message_handler):
                 try:
+                    print("processing message:")
+                    print(m['data'])
                     success = message_handler(**m['data'])
                     if success:
                         messages[0].delete()
