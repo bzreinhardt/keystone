@@ -50,18 +50,18 @@ def wait_until_index_ready(deepgram_id, retries = 0):
 
     while wait_time < MAX_WAIT_TIME_SEC and tries <= retries:
         status = json.loads(get_indexing_status(deepgram_id))
-        print(status)
         if 'status' in status:
             if status['status'] == 'done':
+                print("indexing done for %s" % deepgram_id)
                 break
             else:
-                print("status is")
+                print("status for %s after %d sec is"%(deepgram_id, wait_time))
                 print(status)
                 sleep(FAIL_SLEEP_SEC)
                 wait_time = wait_time + FAIL_SLEEP_SEC
                 if wait_time >= MAX_WAIT_TIME_SEC:
                     tries = tries + 1
-                    deepgram_id = index_audio_url(recording_url)
+                    #deepgram_id = index_audio_url(recording_url)
                     print('retrying')
                     wait_time = 0
         elif 'error' in status:

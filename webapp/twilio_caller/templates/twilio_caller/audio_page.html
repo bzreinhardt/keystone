@@ -110,6 +110,8 @@
 {% endfor %}
 <br>
 {% endfor %}
+
+
   </body>
 {% load static from staticfiles %}
 <script src="{% static '/js/mindstone_ui.js' %}"></script>
@@ -122,7 +124,7 @@
     var tour = new Tour({
     steps: [
       {
-        element: "#participants",
+        element: "#test-participants",
         title: "Title of my step",
         content: "Content of my step"
       },

@@ -55,10 +55,10 @@ else:
     ALLOWED_HOSTS.append('www.evoke.ai')
 
 # SQS
-if DEBUG:
-    RECORDING_QUEUE = '{}-0'.format(getuser())
-else:
-    RECORDING_QUEUE = 'prod-worker-queue'
+#if DEBUG:
+#    RECORDING_QUEUE = '{}-0'.format(getuser())
+#else:
+RECORDING_QUEUE = 'prod-worker-queue'
 
 # Application definition
 
