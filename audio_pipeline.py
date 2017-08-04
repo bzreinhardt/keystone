@@ -50,7 +50,7 @@ def index_audio_until_ready(recording_url, retries = 0):
     wait_time = 0
 
     while wait_time < MAX_WAIT_TIME_SEC and tries <= retries:
-        test = audio_search(call.audio_index_id, 'test')
+        test = audio_search(deepgram_id, 'test')
         print(test)
         if test['error'] is None:
             break
@@ -59,7 +59,7 @@ def index_audio_until_ready(recording_url, retries = 0):
             wait_time = wait_time + FAIL_SLEEP_SEC
             if wait_time >= MAX_WAIT_TIME_SEC:
                 tries = tries + 1
-                deepgram_id = index_audio_url(call.recording_url)
+                deepgram_id = index_audio_url(recording_url)
                 wait_time = 0
     if wait_time >= MAX_WAIT_TIME_SEC:
         print("Indexing failed for %s" % recording_url)
