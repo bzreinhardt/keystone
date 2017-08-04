@@ -2,7 +2,7 @@ from os import path, mkdir, remove
 from os import environ
 from google.cloud import storage
 import audio_tools
-from keyword_search import index_audio_url, audio_search
+from keyword_search import index_audio_url, audio_search, get_indexing_status
 from keystone_asr import upload_folder, transcribe_in_parallel, upload_files
 from pprint import pprint
 import json
@@ -42,7 +42,7 @@ def extract_audio(file):
         subprocess.call(command, shell=True)
         return outfile, True
 
-def index_audio_until_ready(deepgram_id, retries = 0):
+def wait_until_index_ready(deepgram_id, retries = 0):
     #if len(recording_url) == 0:
     #    raise ValueError('index_audio_until_read:need a valid recording_url')
     tries = 0
@@ -51,27 +51,29 @@ def index_audio_until_ready(deepgram_id, retries = 0):
     wait_time = 0
 
     while wait_time < MAX_WAIT_TIME_SEC and tries <= retries:
-        test = audio_search(deepgram_id, 'test')
-        print(test)
-        if test['error'] is None:
-            break
-        else:
-            print("index error is")
-            print(test['error'])
-                #deepgram_id = index_audio_url(recording_url)
-            sleep(FAIL_SLEEP_SEC)
-            wait_time = wait_time + FAIL_SLEEP_SEC
-            if wait_time >= MAX_WAIT_TIME_SEC:
-                tries = tries + 1
-                #deepgram_id = index_audio_url(recording_url)
-                print('retrying')
-                wait_time = 0
+        status = get_indexing_status(deepgram_id)
+        print(status)
+        if 'status' in status:
+            if status['status'] == 'done':
+                break
+            else:
+                print("status is")
+                print(status)
+                sleep(FAIL_SLEEP_SEC)
+                wait_time = wait_time + FAIL_SLEEP_SEC
+                if wait_time >= MAX_WAIT_TIME_SEC:
+                    tries = tries + 1
+                    deepgram_id = index_audio_url(recording_url)
+                    print('retrying')
+                    wait_time = 0
+        elif 'error' in status:
+            return False
     if wait_time >= MAX_WAIT_TIME_SEC:
-        print("Indexing failed for %s" % recording_url)
-        email_text = "Failed to index audio for %s" % recording_url
+        print("Indexing failed for %s" % deepgram_id)
+        email_text = "Failed to index audio for %s" % deepgram_id
         send_simple_message(subject='audio pipeline failure!',
                             text=email_text)
-        return (False)
+        return False
     return True
 
 
@@ -116,7 +118,9 @@ def run_audio_pipeline(recording_file, call,
     #pdb.set_trace
     if do_indexing or call.audio_index_id is None:
         deepgram_id = index_audio_url(call.recording_url)
-        indexed = index_audio_until_ready(deepgram_id)
+        indexed = wait_until_index_ready(deepgram_id)
+        if indexed is False:
+            print('something failed indexing')
         call.audio_index_id = deepgram_id
         call.save()
     else:
@@ -128,7 +132,15 @@ def run_audio_pipeline(recording_file, call,
     if len(phrases) > 0:
         #TODO need to do something smart based on whether it's indexing at all
         call.phrases = json.dumps(phrases)
-        indexed = index_audio_until_ready(call.recording_url)
+        indexed = wait_until_index_ready(call.audio_index_id)
+        if indexed is False:
+            print("index is weird. retrying")
+        deepgram_id = index_audio_url(call.recording_url)
+        indexed = wait_until_index_ready(deepgram_id)
+        if indexed is False:
+            print('something failed indexing')
+        call.audio_index_id = deepgram_id
+        call.save()
         phrase_times = {}
 
         print("searching for phrases:")
