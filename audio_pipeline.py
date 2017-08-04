@@ -57,7 +57,7 @@ def index_audio_until_ready(deepgram_id, retries = 0):
             break
         else:
             print("index error is")
-            print(test['errpr'])
+            print(test['error'])
                 #deepgram_id = index_audio_url(recording_url)
             sleep(FAIL_SLEEP_SEC)
             wait_time = wait_time + FAIL_SLEEP_SEC
