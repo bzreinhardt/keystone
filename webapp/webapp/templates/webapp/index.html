@@ -1,12 +1,27 @@
+
 <!DOCTYPE html>
+{% load static from staticfiles %}
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="google-site-verification" content="KkcS7ywkOKU7QpbY---fTiNGrYzAbbCYLSQ11TfvBjI" />
-    <title>Evoke</title>
-    hello!
-</head>
-<body>
+  <title>evoke.ai | Unleash the Power of Conversation</title>
+  <link rel="stylesheet" href="{% static '/webapp/style.css' %}" />
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <script
+          src="{% static '/webapp/bootstrap-tour-standalone.min.js' %}"></script>
+  <link
+          href="{% static '/webapp/bootstrap-tour-standalone.min.css' %}" rel="stylesheet"/>
 
-</body>
+</head>
+<div> <h1>Evoke</h1> </div>
+<div><h3>Unleash the Power of Conversation</h3></div>
+<form method="POST" action="{% url 'call' %}" enctype="multipart/form-data">
+    <div class="signup form">
+        <div><input name="email" type="email"
+                        placeholder="Enter your email"></div>
+    </div>
+    {% csrf_token %}
+</form>
 </html>

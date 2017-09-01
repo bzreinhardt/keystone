@@ -63,6 +63,7 @@ RECORDING_QUEUE = 'prod-worker-queue'
 # Application definition
 
 INSTALLED_APPS = [
+    'main.apps.MainConfig',
     'twilio_caller.apps.TwilioCallerConfig',
     'django.contrib.admin',
     'django.contrib.auth',

@@ -39,7 +39,7 @@ def temp_index(request):
     return HttpResponse(TEMP_REQUEST)
 
 urlpatterns = [
-    url(r'^$', temp_index),
+    url(r'^$', include('main.urls')),
     url(r'^alpha/', include('twilio_caller.urls')),
     url(r'^admin/', admin.site.urls),
 ]
