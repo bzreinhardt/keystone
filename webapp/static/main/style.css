@@ -1,0 +1,127 @@
+body {
+    font-family: 'Helvetica Neue';
+    margin: 0;
+}
+
+.container {
+    width: 600px;
+    margin: 0 auto;
+}
+
+h1 {
+    background-color: purple;
+    background: radial-gradient(ellipse at center, #7514ce 0%, #480488 100%);
+    padding-top: 50px;
+    padding-bottom: 60px;
+    color: #ede;
+    width: 100%;
+    box-shadow: 0 1px 4px #777;
+    font-size: 35px;
+    font-weight: 300;
+}
+
+h1 .name {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+p {
+    margin-top: 40px;
+}
+
+.dialer-form {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: row;
+}
+
+.dialer-form h2 {
+    margin: -5px 0 .5em -2px;
+}
+
+.caller, .recipient {
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.caller {
+    padding-right: 10px;
+}
+
+.recipient {
+    padding-left: 10px;
+}
+
+input[type="text"] {
+    width: calc(100%);
+    font-size: 18px;
+    margin-bottom: 10px;
+    margin-top: 2px;
+    box-sizing: border-box;
+    padding: 4px;
+}
+
+input[type="tel"] {
+    width: calc(100%);
+    font-size: 18px;
+    margin-bottom: 10px;
+    margin-top: 2px;
+    box-sizing: border-box;
+    padding: 4px;
+}
+
+input[type="email"] {
+    width: calc(100%);
+    font-size: 18px;
+    margin-bottom: 10px;
+    margin-top: 2px;
+    box-sizing: border-box;
+    padding: 4px;
+}
+
+.cta {
+    /* size, shape, color */
+    display: block;
+    width: 150px;
+    background-color: #12b912;
+    background: radial-gradient(ellipse at center, #3bcb40 0%,#28a028 100%);
+    border: 1px solid #004e00;
+    border-radius: 5px;
+    padding-top: calc(.5em - 1px);
+    padding-bottom: calc(.5em + 1px);
+    box-shadow: 0 1px 1px #a2a2a2;
+    outline: none;
+    /* text */
+    color: #eee;
+    font-size: 18px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: -1px;
+    text-shadow: 0 -1px 1px #4f924f;
+}
+
+.cta-call {
+    margin: 40px auto 0;
+}
+
+.cta-tour {
+    width:250px;
+    background-color: #add8e6;
+    margin: auto;
+}
+
+.cta-upload {
+    margin-top: 40px;
+}
+
+.cta:hover, .cta:focus {
+    background: radial-gradient(ellipse at center, #3bcb40 0%,#26bb26 100%);
+}
+
+.cta:active {
+    padding-top: .5em;
+    padding-bottom: .5em;
+    box-shadow: 0 1px 4px #666;
+    outline: none;
+    background: radial-gradient(ellipse at center, #12b912 0%,#28a028 100%);
+}
