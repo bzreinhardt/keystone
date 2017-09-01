@@ -2,7 +2,7 @@
 from flask import Flask, url_for, json,  request, jsonify, render_template, flash
 from wtforms import Form, TextField, TextAreaField, validators, StringField, SubmitField
 import os
-import boto3
+
 import random
 import string
 from flask_sqlalchemy import SQLAlchemy
