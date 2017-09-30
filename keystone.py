@@ -67,7 +67,15 @@ def generate_speaker_lines(words, show_confidence=False):
         if i == len(words) - 1:
             current_line['speaker'] = previous_speaker
             lines.append(current_line)
-    return lines
+    #remove duplicate lines
+    newlines = []
+    import pdb
+    #pdb.set_trace()
+    for i, line in enumerate(lines[0:-1]):
+        if line["words"][0]["text"]!=lines[i+1]["words"][0]["text"]:
+            newlines.append(line)
+    newlines.append(lines[-1])
+    return newlines
 
 
 def add_speakers(transcript, speakers=['Speaker 0', 'Speaker 1', 'Speaker 2']):

@@ -155,7 +155,7 @@ def upload_uberconf(request):
                    for kw in request.POST['keywords'].split(',')}
         call.phrases = json.dumps(phrases)
 
-
+        print("A")
         # Set the people in the call to be the to and from of the call
         participants=request.POST['participants'].split(',')
         call_participants = {}
@@ -173,7 +173,7 @@ def upload_uberconf(request):
             call.recipient_name = 'unknown'
         call.call_begin = timezone.now()
 
-
+        print("B")
         call.keyword_state = TwilioCall.RECORDING_UPLOADED
         call.save()
         recording_queue.send_message(MessageBody=json.dumps({
@@ -185,7 +185,7 @@ def upload_uberconf(request):
                 'phrases': phrases,
                 'force_indexing':False,
                 'force_upload':False,
-                'force_transcript':False,
+                'force_transcript':True,
             }
         }))
         return redirect(reverse('render_backend_viewer', args=[name]))
@@ -395,8 +395,12 @@ def backend_viewer(request, key):
         transcript = json.loads(call.transcript)
     else:
         transcript = []
+    # debug thing
+    for word in transcript:
+        if 'hyperbole' in word['text']:
+            print(word)
     speakers = [call.recipient_name, call.caller_name]
-    transcript = add_speakers(transcript, speakers)
+    #transcript = add_speakers(transcript, speakers)
     lines = generate_speaker_lines(sort_words(transcript))
     audio_url = call.recording_url
     print_phrases = {}
@@ -421,7 +425,9 @@ def backend_viewer(request, key):
                     starttime = time
                     stoptime = time - DEFAULT_PHRASE_TIME_SEC
                 confidence = phrase_results[phrase]['P'][i]
-                url = phrase_results[phrase]['slices'][i]
+                url = ''
+                if 'slices' in phrase_results:
+                    url = phrase_results[phrase]['slices'][i]
                 print_phrases[phrase]['times'].append({'keytime':time,
                                                        'starttime' : starttime,
                                                        'stoptime' : stoptime,
@@ -435,6 +441,8 @@ def backend_viewer(request, key):
 def clip_viewer(request, key):
     call = TwilioCall.objects.get(twilio_recording_sid=key)
     speakers = [call.recipient_name, call.caller_name]
+    import pdb
+    pdb.set_trace()
     transcript = add_speakers(transcript, speakers)
     lines = generate_speaker_lines(sort_words(transcript))
     audio_url = call.recording_url

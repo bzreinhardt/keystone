@@ -86,8 +86,7 @@ def run_audio_pipeline(recording_file, call,
 
 
     key = call.twilio_recording_sid
-    recording_path = '' 
-
+    recording_path = ''
     client = storage.Client()
     bucket = client.get_bucket('illiad-audio')
     # Keep track of whether the recording is something we downloaded
@@ -113,7 +112,7 @@ def run_audio_pipeline(recording_file, call,
     print("do idexing is ")
     print(do_indexing)
     print("index id is: %s"%call.audio_index_id)
-    #pdb.set_trace
+
     if do_indexing or call.audio_index_id is None:
         deepgram_id = index_audio_url(call.recording_url)
         indexed = wait_until_index_ready(deepgram_id)
@@ -133,12 +132,11 @@ def run_audio_pipeline(recording_file, call,
         indexed = wait_until_index_ready(call.audio_index_id)
         if indexed is False:
             print("index is weird. retrying")
-        deepgram_id = index_audio_url(call.recording_url)
-        indexed = wait_until_index_ready(deepgram_id)
-        if indexed is False:
-            print('something failed indexing')
-        call.audio_index_id = deepgram_id
-        call.save()
+            deepgram_id = index_audio_url(call.recording_url)
+            indexed = wait_until_index_ready(deepgram_id)
+
+            call.audio_index_id = deepgram_id
+            call.save()
         phrase_times = {}
 
         print("searching for phrases:")
@@ -231,7 +229,7 @@ def run_audio_pipeline(recording_file, call,
             temp_file = True
             fullpath, filename = path.split(call.recording_url)
             recording_path = "/tmp/%s" % filename
-            urllib.urlretrieve(call.recording_url, recording_path)
+            urllib.request.urlretrieve(call.recording_url, recording_path)
         # TODO: delete original from local filesystem
         print("Slicing audio")
 
@@ -277,8 +275,10 @@ if __name__=="__main__":
     from django.utils import timezone
     from twilio_caller.models import TwilioCall
 
-
-    call = TwilioCall.objects.get(twilio_recording_sid=args.twilio_id)
+    if len(args.twilio_id) is 0:
+        print("need id")
+    else:
+        call = TwilioCall.objects.get(twilio_recording_sid=args.twilio_id)
     if call.participants is not None:
         participants = call.participants.split(',')
     if len(participants) > 0 and call.caller_name is None:

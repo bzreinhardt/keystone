@@ -35,6 +35,7 @@ class Command(BaseCommand):
             print ("getting a message")
             messages = recording_queue.receive_messages(MaxNumberOfMessages=1)
             if len(messages) == 0:
+                print("no message")
                 sleep(1)
                 continue
             m = json.loads(messages[0].body)
