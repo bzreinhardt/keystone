@@ -27,7 +27,7 @@ from urllib.parse import unquote
 FILE_NAME = "ES2016a.Mix-Headset"
 DIR_NAME = "/Users/Zaaron/Data/audio"
 AUDIO_FILE = path.join(DIR_NAME, "%s.wav" % FILE_NAME)
-CLOUD_AUDIO_FILE = "gs://illiad-audio/ES2016a.Mix-Headset.flac"
+CLOUD_AUDIO_FILE = 
 TRANSCRIPT_FILE = path.join(DIR_NAME, "%s_google_transcript.json" % FILE_NAME)
 DURATION = 59
 GOOGLE_STORAGE = "gs://"
